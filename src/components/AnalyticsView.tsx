@@ -17,7 +17,7 @@ export default function AnalyticsView({ reports }: AnalyticsViewProps) {
   const statusCounts = useMemo(() => ({
     pending: reports.filter(r => r.status === 'pending').length,
     reviewed: reports.filter(r => r.status === 'reviewed').length,
-    diteruskan: reports.filter(r => r.status === 'diteruskan').length,
+    diteruskan: reports.filter(r => r.status === 'dilaporkan').length,
   }), [reports]);
 
   // RDS distribution buckets
@@ -76,7 +76,7 @@ export default function AnalyticsView({ reports }: AnalyticsViewProps) {
           { label: 'Total Laporan', value: reports.length, icon: ShieldAlert },
           { label: 'Sudah Dianalisis', value: analyzed.length, icon: TrendingDown },
           { label: 'Rata-rata RDS', value: avgRDS || '—', icon: AlertTriangle },
-          { label: 'Terselesaikan', value: statusCounts.diteruskan, icon: CheckCircle },
+          { label: 'Dilaporkan ke PU', value: statusCounts.diteruskan, icon: CheckCircle },
         ].map((kpi, i) => (
           <motion.div
             key={kpi.label}
@@ -110,7 +110,7 @@ export default function AnalyticsView({ reports }: AnalyticsViewProps) {
             {[
               { label: 'Pending', value: statusCounts.pending, color: 'var(--color-brand-yellow)' },
               { label: 'Reviewed', value: statusCounts.reviewed, color: 'var(--color-brand-blue-500)' },
-              { label: 'Resolved', value: statusCounts.diteruskan, color: 'var(--color-success)' },
+              { label: 'Dilaporkan ke PU', value: statusCounts.diteruskan, color: 'var(--color-success)' },
             ].map(item => (
               <div key={item.label} className="flex items-center gap-3">
                 <span className="text-xs font-semibold w-16" style={{ color: 'var(--color-on-surface-muted)' }}>{item.label}</span>

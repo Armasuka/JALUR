@@ -16,6 +16,12 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function getBaseUrl(): string {
+  if (process.env.BASE_URL) return process.env.BASE_URL;
+  if (process.env.NODE_ENV === 'production') return 'https://jalur.example.com';
+  return `http://localhost:${parseInt(process.env.PORT || '3000')}`;
+}
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 
 // Email configuration - falls back to Ethereal (test) if no SMTP env vars
@@ -31,7 +37,7 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       pass: process.env.SMTP_PASS,
     },
   });
-  console.log("Gmail SMTP configured for feedback emails.");
+  console.log(`[Email] Gmail SMTP configured — sending as ${process.env.SMTP_USER}`);
 } else {
   nodemailer.createTestAccount().then(account => {
     transporter = nodemailer.createTransport({
@@ -124,6 +130,84 @@ async function sendFeedbackEmail(toEmail: string, kodeUnik: string, reportId: nu
     }
   } catch (err) {
     console.error("[Email] Failed to send feedback email:", err);
+  }
+}
+
+async function sendPUReportEmail(report: {
+  kode_unik: string;
+  email: string;
+  alamat: string | null;
+  latitude: number;
+  longitude: number;
+  rds_score: number;
+  tanggal: string | Date | null;
+  deskripsi: string | null;
+  gambar: string;
+}, detections: { kelas: string; confidence_score: number }[]) {
+  if (!transporter) return;
+  try {
+    const baseUrl = getBaseUrl();
+    let imageHtml = '';
+    try {
+      const images = JSON.parse(report.gambar);
+      if (Array.isArray(images) && images.length > 0) {
+        imageHtml = images.slice(0, 3).map((img: string) =>
+          `<img src="${img}" alt="Kerusakan jalan" style="width:120px;height:90px;object-fit:cover;border-radius:8px;margin-right:8px;" />`
+        ).join('');
+      }
+    } catch {}
+
+    const detectionList = detections.length > 0
+      ? detections.map(d => `• ${d.kelas} (${Math.round(d.confidence_score * 100)}%)`).join('<br>')
+      : 'Tidak ada deteksi kerusakan';
+
+    const html = `
+      <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 24px;">
+        <div style="background: #1e3a8a; padding: 24px; border-radius: 12px 12px 0 0;">
+          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">JALUR</h1>
+          <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Laporan Kerusakan Jalan — Dilaporkan ke PU</p>
+        </div>
+        <div style="background: #faf9f7; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">KODE LAPORAN</p>
+            <p style="margin: 0 0 12px; font-size: 22px; font-weight: bold; color: #1e3a8a; letter-spacing: 0.05em;">${report.kode_unik}</p>
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">TANGGAL</p>
+            <p style="margin: 0 0 12px; color: #374151; font-size: 14px;">${toISO(report.tanggal) ? new Date(toISO(report.tanggal)).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : '-'}</p>
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">LOKASI</p>
+            <p style="margin: 0 0 12px; color: #374151; font-size: 14px;">${report.alamat || `Lat: ${report.latitude}, Lon: ${report.longitude}`}</p>
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">RDS SCORE</p>
+            <p style="margin: 0 0 12px; font-size: 20px; font-weight: bold; color: ${report.rds_score < 40 ? '#dc2626' : report.rds_score < 70 ? '#f59e0b' : '#22c55e'};">${report.rds_score} / 100</p>
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">DAMPAK KERUSAKAN</p>
+            <p style="margin: 0 0 12px; color: #374151; font-size: 14px;">${report.rds_score < 40 ? 'Parah — PRIORITAS TINGGI' : report.rds_score < 70 ? 'Sedang — PRIORITAS MENENGAH' : 'Ringan — PRIORITAS RENDAH'}</p>
+            ${report.deskripsi ? `<p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">DESKRIPSI</p><p style="margin: 0 0 12px; color: #374151; font-size: 14px;">${report.deskripsi}</p>` : ''}
+            <p style="margin: 0 0 4px; color: #6b7280; font-size: 12px;">DETEKSI AI</p>
+            <p style="margin: 0 0 12px; color: #374151; font-size: 14px;">${detectionList}</p>
+          </div>
+          ${imageHtml ? `<p style="margin: 0 0 8px; color: #6b7280; font-size: 12px;">FOTO</p><div style="margin-bottom: 16px;">${imageHtml}</div>` : ''}
+          <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px;">Pelapor: <strong>${report.email}</strong></p>
+          <p style="color: #6b7280; font-size: 13px; margin: 0;">Koordinat: ${report.latitude}, ${report.longitude}</p>
+          <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+            <p style="margin: 0; color: #92400e; font-size: 13px;">⚠️ Laporan ini telah ditinjau dan dianggapValid oleh admin JALUR. Mohon ditindaklanjuti.</p>
+          </div>
+        </div>
+        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: process.env.FEEDBACK_FROM_EMAIL || '"JALUR" <noreply@jalur.local>',
+      to: 'pupr@gmail.com',
+      subject: `[PU] Laporan Kerusakan Jalan [${report.kode_unik}] — RDS ${report.rds_score}`,
+      html,
+    });
+
+    if (!process.env.SMTP_USER) {
+      console.log(`[Email Preview] PU report email sent. Preview: ${nodemailer.getTestMessageUrl(info)}`);
+    } else {
+      console.log(`[Email] PU report sent to pupr@gmail.com for report ${report.kode_unik}`);
+    }
+  } catch (err) {
+    console.error("[Email] Failed to send PU report email:", err);
   }
 }
 
@@ -554,7 +638,16 @@ function isWithinKemang(lat: number, lng: number): boolean {
       const oldStatus = report.status;
       await db.update(laporan).set({ status }).where(eq(laporan.id_laporan, Number(id)));
 
-      // Send status update email (non-blocking)
+      // When status changes to 'dilaporkan', send email to PU
+      if (oldStatus !== status && status === 'dilaporkan') {
+        console.log(`[Status] Report ${report.kode_unik} → dilaporkan, sending PU email...`);
+        const dets = await db.select().from(deteksi).where(eq(deteksi.id_laporan, Number(id)));
+        sendPUReportEmail(report, dets)
+          .then(() => console.log(`[Email] PU email sent successfully to pupr@gmail.com for ${report.kode_unik}`))
+          .catch(err => console.error(`[Email] PU email FAILED for ${report.kode_unik}:`, err.message || err));
+      }
+
+      // Send status update email to citizen (non-blocking)
       if (oldStatus !== status && report.email) {
         sendStatusUpdateEmail(report.email, report.kode_unik, status).catch(console.error);
       }

@@ -40,13 +40,13 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
   const avgRDS = analyzedReports.length > 0
     ? Math.round(analyzedReports.reduce((acc, r) => acc + r.rdsScore, 0) / analyzedReports.length)
     : 0;
-  const diteruskanCount = reports.filter(r => r.status === 'diteruskan').length;
+  const diteruskanCount = reports.filter(r => r.status === 'dilaporkan').length;
   const severeCount = analyzedReports.filter(r => r.rdsScore < 40).length;
 
   const stats = [
     { label: 'Total Laporan', value: reports.length, icon: ShieldAlert },
     { label: 'Kerusakan Parah', value: severeCount, icon: AlertTriangle },
-    { label: 'Terselesaikan', value: diteruskanCount, icon: CheckCircle },
+    { label: 'Dilaporkan ke PU', value: diteruskanCount, icon: CheckCircle },
     { label: 'Rata-rata RDS', value: analyzedReports.length > 0 ? avgRDS : '--', icon: TrendingDown },
   ];
 
@@ -82,7 +82,7 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
           { label: 'Avg RDS', value: analyzedReports.length > 0 ? avgRDS : '--', icon: TrendingDown, color: '#ef4444' },
           ...(role !== 'warga' ? [
             { label: 'Kerusakan Parah', value: severeCount, icon: AlertTriangle, color: '#ef4444' },
-            { label: 'Terselesaikan', value: diteruskanCount, icon: CheckCircle, color: 'var(--color-success)' },
+            { label: 'Dilaporkan ke PU', value: diteruskanCount, icon: CheckCircle, color: 'var(--color-success)' },
           ] as typeof stats : []),
         ].map((stat, i) => (
           <motion.div
@@ -103,7 +103,7 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
 
       {/* Admin Priority Banner */}
       {role !== 'warga' && (() => {
-        const criticalCount = reports.filter(r => r.rdsScore > 0 && r.rdsScore < 40 && r.status !== 'diteruskan').length;
+        const criticalCount = reports.filter(r => r.rdsScore > 0 && r.rdsScore < 40 && r.status !== 'dilaporkan').length;
         return (
           <motion.div
             variants={tileVariant} initial="hidden" animate="visible" custom={4}

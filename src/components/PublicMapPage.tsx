@@ -21,7 +21,7 @@ interface PublicMapPageProps {
 }
 
 type SeverityFilter = 'all' | 'parah' | 'sedang' | 'ringan';
-type StatusFilter = 'all' | 'pending' | 'reviewed' | 'diteruskan';
+type StatusFilter = 'all' | 'pending' | 'reviewed' | 'dilaporkan';
 
 function getSeverityLabel(score: number): string {
   if (score <= 39) return 'parah';
@@ -167,7 +167,7 @@ export default function PublicMapPage({ onBack, onEnter }: PublicMapPageProps) {
                   <div>
                     <span className="eyebrow block mb-2">Status</span>
                     <div className="flex gap-2">
-                      {(['all', 'pending', 'reviewed', 'diteruskan'] as StatusFilter[]).map(f => (
+                      {(['all', 'pending', 'reviewed', 'dilaporkan'] as StatusFilter[]).map(f => (
                         <button key={f} onClick={() => setStatusFilter(f)}
                           className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
                           style={{
@@ -240,8 +240,8 @@ export default function PublicMapPage({ onBack, onEnter }: PublicMapPageProps) {
                       </div>
                       <div className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full inline-block"
                         style={{
-                          background: report.status === 'diteruskan' ? '#f0fdf4' : report.status === 'reviewed' ? 'var(--color-brand-blue-50)' : 'var(--color-brand-yellow-50)',
-                          color: report.status === 'diteruskan' ? '#15803d' : report.status === 'reviewed' ? 'var(--color-brand-blue)' : 'var(--color-brand-yellow-700)',
+                          background: report.status === 'dilaporkan' ? '#f0fdf4' : report.status === 'reviewed' ? 'var(--color-brand-blue-50)' : 'var(--color-brand-yellow-50)',
+                          color: report.status === 'dilaporkan' ? '#15803d' : report.status === 'reviewed' ? 'var(--color-brand-blue)' : 'var(--color-brand-yellow-700)',
                         }}
                       >{report.status}</div>
                     </div>

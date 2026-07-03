@@ -441,8 +441,8 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 p-5 rounded-2xl" style={{ background: 'var(--color-surface-cream)', border: '1px solid var(--color-border)' }}>
                 <div className="flex items-baseline gap-3 mb-3">
                   <span className="display-serif text-2xl" style={{ color: 'var(--color-brand-blue)', fontFeatureSettings: '"tnum"' }}>{trackResult.kodeUnik}</span>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${trackResult.status === 'diteruskan' ? 'badge-status-diteruskan' : trackResult.status === 'reviewed' ? 'badge-status-reviewed' : 'badge-status-pending'}`}>
-                    {trackResult.status === 'pending' ? 'Menunggu' : trackResult.status === 'reviewed' ? 'Ditinjau' : 'Selesai'}
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${trackResult.status === 'dilaporkan' ? 'badge-status-diteruskan' : trackResult.status === 'reviewed' ? 'badge-status-reviewed' : 'badge-status-pending'}`}>
+                    {trackResult.status === 'pending' ? 'Menunggu' : trackResult.status === 'reviewed' ? 'Ditinjau' : 'Dilaporkan ke PU'}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

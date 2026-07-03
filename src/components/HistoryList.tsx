@@ -198,7 +198,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
             </button>
             {showFilterMenu && (
               <div className="absolute right-0 top-full mt-2 w-40 py-2 rounded-2xl z-50" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: '0 8px 30px rgba(15,23,42,0.12)' }}>
-                {['all', 'pending', 'reviewed', 'diteruskan'].map(s => (
+                {['all', 'pending', 'reviewed', 'dilaporkan'].map(s => (
                   <button
                     key={s}
                     onClick={() => { setStatusFilter(s); setShowFilterMenu(false); }}
@@ -346,10 +346,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     >
                       <option value="pending">Menunggu</option>
                       <option value="reviewed">Ditinjau</option>
-                      <option value="dilaporkan">Dilaporkan PU</option>
-                      <option value="dalam_perbaikan">Perbaikan</option>
-                      <option value="perbaikan_selesai">Selesai</option>
-                      <option value="ditolak">Ditolak</option>
+                      <option value="dilaporkan">Dilaporkan ke PU</option>
                     </select>
                   ) : (
                     <span className={getStatusBadgeClass(report.status)}>
@@ -680,10 +677,10 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     <div className="absolute left-[7px] top-2 bottom-2 w-0.5" style={{ background: 'var(--color-border)' }} />
                     {[
                       { label: 'Dilaporkan', key: 'pending', desc: selectedReport.createdAt ? format(new Date(selectedReport.createdAt), 'dd MMM yyyy, HH:mm') : 'Baru saja' },
-                      { label: 'Ditinjau Admin', key: 'reviewed', desc: selectedReport.status === 'reviewed' || selectedReport.status === 'diteruskan' ? 'Sudah ditinjau' : 'Menunggu' },
-                      { label: 'Selesai Diperbaiki', key: 'diteruskan', desc: selectedReport.status === 'diteruskan' ? 'Sudah selesai' : 'Belum' },
+                      { label: 'Ditinjau Admin', key: 'reviewed', desc: selectedReport.status === 'reviewed' || selectedReport.status === 'dilaporkan' ? 'Sudah ditinjau' : 'Menunggu' },
+                      { label: 'Dilaporkan ke PU', key: 'dilaporkan', desc: selectedReport.status === 'dilaporkan' ? 'Sudah dilaporkan' : 'Menunggu' },
                     ].map((step, i) => {
-                      const statusOrder = ['pending', 'reviewed', 'diteruskan'];
+                      const statusOrder = ['pending', 'reviewed', 'dilaporkan'];
                       const current = statusOrder.indexOf(selectedReport.status);
                       const isActive = i <= current;
                       const isCurrent = statusOrder[i] === selectedReport.status;

@@ -21,6 +21,6 @@ export interface Report {
   imageUrl: string;
   deskripsi?: string;
   rdsScore: number;
-  status: 'pending' | 'reviewed' | 'diteruskan';
+  status: 'pending' | 'reviewed' | 'dilaporkan';
   detections?: Detection[];
 }

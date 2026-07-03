@@ -23,7 +23,7 @@ export function getStatusColor(status: string) {
   switch (status) {
     case 'pending': return 'bg-brand-yellow-50 text-brand-yellow-700 border-brand-yellow-100';
     case 'reviewed': return 'bg-brand-blue-50 text-brand-blue border-brand-blue-100';
-    case 'diteruskan': return 'bg-green-50 text-green-700 border-green-200';
+    case 'dilaporkan': return 'bg-green-50 text-green-700 border-green-200';
     default: return 'bg-slate-50 text-slate-500 border-slate-200';
   }
 }

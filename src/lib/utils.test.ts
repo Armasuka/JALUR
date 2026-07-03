@@ -114,8 +114,8 @@ describe('getStatusColor', () => {
     expect(result).toContain('brand-blue');
   });
 
-  it('returns green color for ditingkatkan status', () => {
-    const result = getStatusColor('diteruskan');
+  it('returns green color for dilaporkan status', () => {
+    const result = getStatusColor('dilaporkan');
     expect(result).toContain('green');
   });
 
