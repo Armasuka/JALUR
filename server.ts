@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { db } from "./src/db/index";
 import { laporan, deteksi } from "./src/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
 import * as dotenv from "dotenv";
 import nodemailer from "nodemailer";
@@ -367,6 +367,28 @@ function isWithinKemang(lat: number, lng: number): boolean {
   return lat >= -6.5400 && lat <= -6.4850 && lng >= 106.7200 && lng <= 106.7800;
 }
 
+// Generate sequential K-codes: K-001, K-002, ...
+async function generateKodeUnik(): Promise<string> {
+  if (!db) return "K-001"; // fallback if DB not configured
+  try {
+    const [latest] = await db
+      .select({ kode: laporan.kode_unik })
+      .from(laporan)
+      .where(sql`kode_unik GLOB 'K-[0-9]*'`)
+      .orderBy(desc(laporan.id_laporan))
+      .limit(1);
+
+    let nextNum = 1;
+    if (latest?.kode) {
+      const num = parseInt(latest.kode.split('-')[1], 10);
+      if (!isNaN(num)) nextNum = num + 1;
+    }
+    return `K-${String(nextNum).padStart(3, '0')}`;
+  } catch {
+    return "K-001"; // fallback on error
+  }
+}
+
   app.post("/api/reports", async (req, res) => {
     try {
       if (!db) {
@@ -379,7 +401,7 @@ function isWithinKemang(lat: number, lng: number): boolean {
         return res.status(400).json({ error: "Laporan ditolak. Hanya area Kecamatan Kemang, Kabupaten Bogor yang diperbolehkan." });
       }
 
-      const kodeUnik = `LAP-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const kodeUnik = await generateKodeUnik();
 
       // Handle both new array format and legacy single image format
       const gambarStr = images ? JSON.stringify(images) : "[]";
