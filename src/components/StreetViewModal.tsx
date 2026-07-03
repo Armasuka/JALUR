@@ -13,7 +13,24 @@ export default function StreetViewModal({ report, onClose }: StreetViewModalProp
   if (!report) return null;
 
   const googleMapsUrl = `https://www.google.com/maps?q=${report.latitude},${report.longitude}&layer=sv`;
-  const osmStaticUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${report.latitude},${report.longitude}&zoom=17&size=600x400&markers=${report.latitude},${report.longitude},red-pushpin`;
+  // Generate static map using OSM tiles directly
+  const zoom = 17;
+  const lat = report.latitude;
+  const lon = report.longitude;
+
+  // Calculate tile coordinates
+  const n = Math.pow(2, zoom);
+  const xtile = Math.floor(((lon + 180) / 360) * n);
+  const ytile = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
+
+  // Build tile URLs for 3x3 grid
+  const tileBase = 'https://tile.openstreetmap.org';
+  const tiles = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      tiles.push(`${tileBase}/${zoom}/${xtile + dx}/${ytile + dy}.png`);
+    }
+  }
 
   return (
     <div style={{
@@ -99,7 +116,7 @@ export default function StreetViewModal({ report, onClose }: StreetViewModalProp
           padding: '24px',
           gap: '16px',
         }}>
-          {/* Satellite Map Preview */}
+          {/* Satellite Map Preview - OSM Tiles */}
           <div style={{
             width: '100%',
             maxWidth: '520px',
@@ -108,32 +125,47 @@ export default function StreetViewModal({ report, onClose }: StreetViewModalProp
             border: '3px solid white',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             position: 'relative',
+            background: '#e5e7eb',
           }}>
-            <img
-              src={osmStaticUrl}
-              alt="Lokasi satelit"
-              style={{
-                width: '100%',
-                height: '280px',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const container = e.currentTarget.parentElement;
-                if (container) {
-                  container.innerHTML = `
-                    <div style="width:100%;height:280px;background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      <span style="font-size:13px;color:#6b7280;">Gagal memuat peta</span>
-                    </div>
-                  `;
-                }
-              }}
-            />
+            {/* 3x3 Tile Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateRows: 'repeat(3, 1fr)',
+              width: '100%',
+              height: '280px',
+            }}>
+              {tiles.map((tileUrl, i) => (
+                <img
+                  key={i}
+                  src={tileUrl}
+                  alt=""
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    gridColumn: (i % 3) + 1,
+                    gridRow: Math.floor(i / 3) + 1,
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ))}
+            </div>
+            {/* Marker overlay */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+            }}>
+              <svg width="32" height="40" viewBox="0 0 32 40" fill="none">
+                <path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 24 16 24s16-12 16-24c0-8.84-7.16-16-16-16z" fill="#ef4444"/>
+                <circle cx="16" cy="16" r="6" fill="white"/>
+              </svg>
+            </div>
             {/* Overlay badge */}
             <div style={{
               position: 'absolute',
