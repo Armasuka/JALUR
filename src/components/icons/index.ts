@@ -36,6 +36,7 @@ export { default as Settings } from './Settings';
 export { default as ShieldAlert } from './ShieldAlert';
 export { default as ShieldCheck } from './ShieldCheck';
 export { default as TrendingDown } from './TrendingDown';
+export { default as Trash } from './Trash';
 export { default as Upload } from './Upload';
 export { default as User } from './User';
 export { default as X } from './X';

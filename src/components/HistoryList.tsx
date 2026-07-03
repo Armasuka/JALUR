@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { format } from 'date-fns';
-import { ExternalLink, Filter, Search, ArrowRight, BrainCircuit, Loader2, X, MapPin, ChevronLeft, ChevronRight, Download } from './icons';
+import { ExternalLink, Filter, Search, ArrowRight, BrainCircuit, Loader2, X, MapPin, ChevronLeft, ChevronRight, Download, Trash } from './icons';
 import EmptyState from './EmptyState';
 import { getStatusColor, getScoreColor } from '../lib/utils';
 import { Report } from '../types';
@@ -12,9 +12,10 @@ interface HistoryListProps {
   onStatusChange: (id: number, status: string) => void;
   onDetect?: (id: number) => Promise<void>;
   onNavigateReport?: () => void;
+  onDelete: (id: number) => void;
 }
 
-export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect, onNavigateReport }: HistoryListProps) {
+export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect, onNavigateReport, onDelete }: HistoryListProps) {
   const [detectingId, setDetectingId] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
@@ -23,6 +24,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showDetections, setShowDetections] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<Report | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Close filter menu when clicking outside
@@ -356,14 +358,26 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setSelectedReport(report); }}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:shadow-md" 
-                    style={{ background: 'var(--color-surface-cream)', border: '1px solid var(--color-border)' }}
-                    title="Lihat detail"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedReport(report); }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:shadow-md"
+                      style={{ background: 'var(--color-surface-cream)', border: '1px solid var(--color-border)' }}
+                      title="Lihat detail"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(report); }}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:shadow-md"
+                        style={{ background: '#fef2f2', border: '1px solid #fca5a5' }}
+                        title="Hapus laporan"
+                      >
+                        <Trash className="w-3.5 h-3.5" style={{ '--color-brand-blue': '#ef4444' } as React.CSSProperties} />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -384,6 +398,72 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
         />
       )}
 
+      {/* ── Delete Confirmation Modal ─────────── */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteTarget(null)}
+              className="fixed inset-0 z-[110]"
+              style={{ background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(8px)' }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="fixed inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[111] flex items-center justify-center p-4"
+            >
+              <div
+                className="w-full md:w-[420px] rounded-3xl p-6 md:p-8 flex flex-col gap-5"
+                style={{ background: 'var(--color-surface-cream)', boxShadow: '0 40px 80px rgba(15,23,42,0.4)' }}
+              >
+                {/* Icon */}
+                <div className="flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#fef2f2' }}>
+                    <Trash className="w-6 h-6" style={{ '--color-brand-blue': '#ef4444' } as React.CSSProperties} />
+                  </div>
+                </div>
+
+                {/* Text */}
+                <div className="text-center">
+                  <h3 className="font-bold text-lg" style={{ color: 'var(--color-on-surface)' }}>
+                    Hapus Laporan?
+                  </h3>
+                  <p className="text-sm mt-2" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    Laporan <span className="font-semibold" style={{ fontFamily: 'var(--font-mono)' }}>{deleteTarget.kodeUnik}</span> akan dihapus permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeleteTarget(null)}
+                    className="flex-1 py-3 rounded-2xl text-sm font-semibold transition-colors"
+                    style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)' }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => {
+                      onDelete(deleteTarget.id);
+                      setDeleteTarget(null);
+                      if (selectedReport?.id === deleteTarget.id) setSelectedReport(null);
+                    }}
+                    className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white transition-colors"
+                    style={{ background: '#ef4444' }}
+                  >
+                    Ya, Hapus
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       {/* ── Review Modal ───────────────────────── */}
       <AnimatePresence>
         {selectedReport && (
@@ -394,16 +474,15 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
               exit={{ opacity: 0 }}
               onClick={() => setSelectedReport(null)}
               className="fixed inset-0 z-[100]"
-              style={{ background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(8px)' }}
+              style={{ background: "rgba(15, 23, 42, 0.55)", backdropFilter: "blur(8px)" }}
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="fixed inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:max-w-[1080px] h-full md:h-auto md:max-h-[90vh] z-[101] flex flex-col md:flex-row modal-review"
-              style={{ background: 'var(--color-surface-cream)', boxShadow: '0 40px 80px rgba(15,23,42,0.4)' }}
+              style={{ background: "var(--color-surface-cream)", boxShadow: "0 40px 80px rgba(15,23,42,0.4)" }}
             >
-              {/* Close button — works on both mobile and desktop */}
               <button 
                 onClick={() => setSelectedReport(null)}
                 className="absolute top-4 right-4 md:top-5 md:right-5 w-10 h-10 rounded-full flex items-center justify-center z-20 transition-colors"
@@ -411,7 +490,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
               >
                 <X className="w-4 h-4" />
               </button>
-
+              
               {/* LEFT: Image Gallery */}
               <div className="shrink-0 md:w-[52%] relative flex items-center justify-center h-[40vh] md:h-auto" style={{ background: '#0f172a' }}>
                 {modalImages.length > 0 && (
@@ -435,7 +514,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                          const catColor = det.class === 'pothole' ? '#ef4444'
                            : det.class === 'alligator crack' ? '#f59e0b'
                            : '#3b82f6';
-
+              
                          return (
                            <div key={i} style={{
                              position: 'absolute',
@@ -494,7 +573,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     </div>
                   </>
                 )}
-
+              
                 {/* Toggle AI detection overlay */}
                 {selectedReport.detections && selectedReport.detections.length > 0 && (
                   <button 
@@ -520,7 +599,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     {selectedReport.createdAt ? format(new Date(selectedReport.createdAt), 'dd MMM yyyy, HH:mm') : ''}
                   </span>
                 </div>
-
+              
                 {/* Badges */}
                 <div className="flex gap-2 flex-wrap">
                   <span className={getStatusBadgeClass(selectedReport.status)}>
@@ -540,7 +619,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     </span>
                   )}
                 </div>
-
+              
                 {/* Description */}
                 <div className="pt-3 md:pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
                   <span className="eyebrow mb-2 block">Deskripsi warga</span>
@@ -554,7 +633,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     <p className="text-sm italic" style={{ color: 'var(--color-on-surface-muted)' }}>Tidak ada deskripsi tambahan.</p>
                   )}
                 </div>
-
+              
                 {/* Location */}
                 <div className="pt-3 md:pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
                   <span className="eyebrow mb-2 block">Lokasi</span>
@@ -593,7 +672,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     </div>
                   </div>
                 )}
-
+              
                 {/* Status Timeline */}
                 <div className="pt-3 md:pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
                   <span className="eyebrow mb-3 md:mb-4 block">Timeline Status</span>
@@ -627,7 +706,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     })}
                   </div>
                 </div>
-
+              
                 {/* Export PDF (admin) */}
                 {isAdmin && selectedReport.rdsScore > 0 && (
                   <div className="pt-3 md:pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
@@ -640,7 +719,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     </button>
                   </div>
                 )}
-
+              
                 {/* AI sedang menganalisis (admin, RDS=0) */}
                 {isAdmin && selectedReport.rdsScore === 0 && (
                   <div className="mt-auto pt-4 md:pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>

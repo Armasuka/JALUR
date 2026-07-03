@@ -566,6 +566,24 @@ function isWithinKemang(lat: number, lng: number): boolean {
     }
   });
 
+  app.delete("/api/reports/:id", async (req, res) => {
+    try {
+      if (!db) return res.status(500).json({ error: "No DB" });
+      const { id } = req.params;
+
+      // Delete associated detections first (child records)
+      await db.delete(deteksi).where(eq(deteksi.id_laporan, Number(id)));
+
+      // Then delete the report itself
+      await db.delete(laporan).where(eq(laporan.id_laporan, Number(id)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to delete report" });
+    }
+  });
+
   // Public tracking endpoint
   app.get("/api/reports/track/:kode", async (req, res) => {
     try {

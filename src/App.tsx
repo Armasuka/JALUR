@@ -137,6 +137,22 @@ export default function App() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await fetch(`/api/reports/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        // Remove deleted report from local state
+        setReports(prev => prev.filter(r => r.id !== id));
+      } else {
+        console.error('Delete failed');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleEnter = (r: 'warga' | 'admin') => {
     setLandingView(null);
     if (r === 'admin') {
@@ -236,7 +252,7 @@ export default function App() {
             >
               {currentView === 'dashboard' && <Dashboard reports={reports} role={role} onNavigate={(v) => setCurrentView(v as View)} />}
               {currentView === 'report' && <ReportForm onSuccess={fetchReports} onNavigateMap={() => setCurrentView('dashboard')} onNavigateHistory={() => setCurrentView('history')} />}
-              {currentView === 'history' && <HistoryList reports={reports} onStatusChange={handleStatusChange} isAdmin={role === 'admin'} onDetect={handleDetect} onNavigateReport={() => setCurrentView('report')} />}
+              {currentView === 'history' && <HistoryList reports={reports} onStatusChange={handleStatusChange} isAdmin={role === 'admin'} onDetect={handleDetect} onNavigateReport={() => setCurrentView('report')} onDelete={handleDelete} />}
               {currentView === 'analytics' && <AnalyticsView reports={reports} />}
               {currentView === 'priority' && <PriorityView reports={reports} onStatusChange={handleStatusChange} onNavigateHistory={() => setCurrentView('history')} />}
             </motion.div>
