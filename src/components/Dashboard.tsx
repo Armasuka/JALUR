@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MapDisplay from './MapDisplay';
 import EmptyState from './EmptyState';
+import StreetViewModal from './StreetViewModal';
 import { ShieldAlert, AlertTriangle, CheckCircle, TrendingDown, ArrowRight, Send, ListOrdered, MapPin } from './icons';
 import { motion } from 'motion/react';
 import { AnimatedNumber } from '../lib/useCountUp';
@@ -27,6 +28,7 @@ const tileVariant = {
 
 export default function Dashboard({ reports, role, onNavigate }: DashboardProps) {
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
+  const [streetViewReport, setStreetViewReport] = useState<Report | null>(null);
 
   const visibleReports = mapBounds
     ? reports.filter(r => mapBounds.contains([r.latitude, r.longitude]))
@@ -35,6 +37,17 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
   const handleBoundsChange = (bounds: L.LatLngBounds) => {
     setMapBounds(bounds);
   };
+
+  // Setup window handler for map popup Street View buttons
+  useEffect(() => {
+    (window as any).openStreetView = (reportId: number) => {
+      const report = reports.find(r => r.id === reportId);
+      if (report) setStreetViewReport(report);
+    };
+    return () => {
+      delete (window as any).openStreetView;
+    };
+  }, [reports]);
 
   const analyzedReports = reports.filter(r => r.rdsScore > 0);
   const avgRDS = analyzedReports.length > 0
@@ -202,6 +215,42 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
                           {report.status}
                         </span>
                       </div>
+                      <button
+                        onClick={() => setStreetViewReport(report)}
+                        style={{
+                          marginTop: '8px',
+                          width: '100%',
+                          padding: '8px 10px',
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59,130,246,0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(59,130,246,0.3)';
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <rect x="3" y="8" width="18" height="12" rx="2"/>
+                          <circle cx="12" cy="14" r="4"/>
+                          <path d="M8 5L12 2L16 5"/>
+                        </svg>
+                        Lihat Lokasi
+                      </button>
                     </div>
                   </motion.div>
                 );
@@ -224,6 +273,9 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
           <MapDisplay reports={reports} onBoundsChange={handleBoundsChange} />
         </div>
       </div>
+
+      {/* Street View Modal */}
+      <StreetViewModal report={streetViewReport} onClose={() => setStreetViewReport(null)} />
     </div>
   );
 }

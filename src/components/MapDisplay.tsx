@@ -7,9 +7,10 @@ import kemangData from '../kemangPolygon.json';
 interface MapDisplayProps {
   reports: Report[];
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
+  onReportClick?: (report: Report) => void;
 }
 
-export default function MapDisplay({ reports, onBoundsChange }: MapDisplayProps) {
+export default function MapDisplay({ reports, onBoundsChange, onReportClick }: MapDisplayProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
@@ -90,9 +91,20 @@ export default function MapDisplay({ reports, onBoundsChange }: MapDisplayProps)
 
       L.marker([report.latitude, report.longitude], { icon })
         .bindPopup(`
-          <div style="padding:8px;min-width:150px;">
+          <div style="padding:10px;min-width:170px;">
             <p style="font-weight:600;margin:0 0 4px;">RDS: ${report.rdsScore || '--'}</p>
-            <p style="font-size:12px;color:#666;margin:0;">${report.address || 'Kemang, Bogor'}</p>
+            <p style="font-size:12px;color:#666;margin:0 0 10px;">${report.address || 'Kemang, Bogor'}</p>
+            <button
+              onclick="window.openStreetView && window.openStreetView(${report.id})"
+              style="background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(59,130,246,0.3);"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="8" width="18" height="12" rx="2"/>
+                <circle cx="12" cy="14" r="4"/>
+                <path d="M8 5L12 2L16 5"/>
+              </svg>
+              Lihat Lokasi
+            </button>
           </div>
         `)
         .addTo(map);
