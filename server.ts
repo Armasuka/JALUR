@@ -444,7 +444,8 @@ async function generateKodeUnik(): Promise<string> {
               console.log(`[Classifier] Detected: ${detectedClass}, confidence: ${confidence}`);
 
               // Check if it's road or non-road
-              if (detectedClass !== "road" || confidence < 0.5) {
+              // "Jalanan" = road (valid), "Bukan Jalan" = non-road (reject)
+              if (detectedClass === "Bukan Jalan" || confidence < 0.5) {
                 // NON-ROAD - Return early, don't save
                 console.log(`[Classifier] NON-ROAD detected - rejecting report`);
                 return res.json({

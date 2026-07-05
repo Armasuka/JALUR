@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 const ease = [0.22, 1, 0.36, 1] as const;
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Loader2, ShieldAlert, Mail, MapPin, ArrowRight, BrainCircuit, CheckCircle2, Camera } from './icons';
@@ -239,7 +239,7 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
   };
 
   // Success Card Component
-  const SuccessCard = () => (
+  const SuccessCard = React.memo(() => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -479,13 +479,13 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
         </motion.div>
       </div>
     </motion.div>
-  );
+  ));
 
   return (
     <div className="max-w-[1080px] mx-auto py-4 md:py-8 px-0">
       <AnimatePresence mode="wait">
         {status === 'success' && (
-          <SuccessCard />
+          <SuccessCard key="success" />
         )}
         {status === 'analyzing' && (
           <motion.div
