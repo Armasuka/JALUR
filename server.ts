@@ -305,6 +305,8 @@ async function startServer() {
           rdsScore: report.rds_score,
           status: report.status,
           address: report.alamat,
+          isRoadValid: report.is_road_valid ?? true,
+          roadWarning: report.road_warning,
           detections: dets.map(d => ({
             class: d.kelas,
             confidence: d.confidence_score,
@@ -397,142 +399,185 @@ async function generateKodeUnik(): Promise<string> {
 
       const { email, latitude, longitude, images, deskripsi } = req.body;
 
+      // 1. Validate location
       if (!isWithinKemang(latitude, longitude)) {
         return res.status(400).json({ error: "Laporan ditolak. Hanya area Kecamatan Kemang, Kabupaten Bogor yang diperbolehkan." });
       }
 
+      // 2. Generate kode unik dulu
       const kodeUnik = await generateKodeUnik();
 
-      // Handle both new array format and legacy single image format
-      const gambarStr = images ? JSON.stringify(images) : "[]";
+      // 3. Road Classification (WAJIB - langkah pertama)
+      const classifierUrl = "https://predict-6a49e64a402cf39ae6eb-dproatj77a-et.a.run.app/predict";
+      const classifierApiKey = process.env.ROAD_CLASSIFIER_API_KEY;
 
-      // Save Report immediately to prevent slow UI (Reverse geocode + AI detection in background)
+      let isRoadValid = true;
+
+      if (classifierApiKey && images && images.length > 0) {
+        const firstImage = images[0];
+        if (firstImage && firstImage.includes(",")) {
+          const base64Data = firstImage.split(",")[1];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const blob = new Blob([buffer], { type: "image/jpeg" });
+
+          const formData = new FormData();
+          formData.append("file", blob, "image.jpg");
+          formData.append("conf", "0.5");
+
+          try {
+            console.log(`[Classifier] Checking if image is road...`);
+            const response = await fetch(classifierUrl, {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${classifierApiKey}` },
+              body: formData,
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log(`[Classifier] Response:`, JSON.stringify(data));
+
+              // Parse response - assume format similar to YOLO
+              const results = data.images?.[0]?.results || [];
+              const detectedClass = results[0]?.name;
+              const confidence = results[0]?.confidence || 0;
+
+              console.log(`[Classifier] Detected: ${detectedClass}, confidence: ${confidence}`);
+
+              // Check if it's road or non-road
+              if (detectedClass !== "road" || confidence < 0.5) {
+                // NON-ROAD - Return early, don't save
+                console.log(`[Classifier] NON-ROAD detected - rejecting report`);
+                return res.json({
+                  success: true,
+                  isRoadValid: false,
+                  message: "Foto tidak terdeteksi sebagai jalanan. Silakan foto permukaan jalan."
+                });
+              }
+
+              isRoadValid = true;
+            }
+          } catch (err) {
+            console.error("[Classifier] Error:", err);
+            // Graceful degradation - proceed to detection
+          }
+        }
+      }
+
+      // 4. YOLO Damage Detection (hanya kalau road valid)
+      let rawDetections: any[] = [];
+      const yoloUrl = "https://predict-69fefbdb869dd01551bd-dproatj77a-et.a.run.app/predict";
+      const yoloApiKey = process.env.ULTRALYTICS_API_KEY;
+
+      if (yoloApiKey && images && images.length > 0) {
+        console.log(`[Detection] Starting YOLO damage detection...`);
+
+        for (let i = 0; i < images.length; i++) {
+          const imgData = images[i];
+          if (!imgData || !imgData.includes(",")) continue;
+
+          const base64Data = imgData.split(",")[1];
+          const mimeType = imgData.split(";")[0].split(":")[1] || "image/jpeg";
+          const buffer = Buffer.from(base64Data, 'base64');
+          const blob = new Blob([buffer], { type: mimeType });
+
+          const formData = new FormData();
+          formData.append("file", blob, `image_${i}.jpg`);
+          formData.append("conf", "0.25");
+          formData.append("iou", "0.7");
+          formData.append("imgsz", "640");
+
+          try {
+            const yoloResponse = await fetch(yoloUrl, {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${yoloApiKey}` },
+              body: formData,
+            });
+
+            if (yoloResponse.ok) {
+              const yoloData = await yoloResponse.json() as any;
+              if (yoloData.images && yoloData.images.length > 0) {
+                const results = yoloData.images[0].results || [];
+                const imageDetections = results.map((det: any) => {
+                  const width = det.box.x2 - det.box.x1;
+                  const height = det.box.y2 - det.box.y1;
+                  return {
+                    class: det.name || "unknown",
+                    confidence: det.confidence,
+                    image_index: i,
+                    bbox: { x: det.box.x1, y: det.box.y1, width, height }
+                  };
+                });
+                rawDetections = [...rawDetections, ...imageDetections];
+              }
+            }
+          } catch (detErr) {
+            console.error(`[Detection] Error on image ${i}:`, detErr);
+          }
+        }
+      }
+
+      // 5. Calculate RDS Score
+      const weights: Record<string, number> = {
+        'pothole': 10, 'linear crack': 5, 'alligator crack': 7
+      };
+      const penalty = rawDetections.reduce((acc: number, det: any) => acc + (weights[det.class] || 0), 0);
+      const rdsScore = Math.max(0, 100 - penalty);
+      console.log(`[Detection] RDS Score: ${rdsScore}, Detections: ${rawDetections.length}`);
+
+      // 6. Get address
+      const alamat = await getWilayahAddress(latitude, longitude);
+
+      // 7. Save to DB
+      const gambarStr = images ? JSON.stringify(images) : "[]";
       const [report] = await db.insert(laporan).values({
         kode_unik: kodeUnik,
         email,
         latitude,
         longitude,
-        alamat: 'Sedang melacak lokasi...',
+        alamat,
         gambar: gambarStr,
         deskripsi,
-        rds_score: 0,
+        rds_score: rdsScore,
         tanggal: new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        is_road_valid: isRoadValid,
+        road_warning: null
       }).returning();
 
-      // Run slow tasks in the background: reverse geocode + AI detection
-      (async () => {
-        try {
-          // 1. Reverse geocode
-          const alamat = await getWilayahAddress(latitude, longitude);
-          if (alamat && alamat !== 'Tidak diketahui') {
-            await db.update(laporan).set({ alamat }).where(eq(laporan.id_laporan, report.id_laporan));
-          }
-          await sendFeedbackEmail(email, kodeUnik, report.id_laporan);
+      // 8. Save detections
+      if (rawDetections.length > 0) {
+        await db.insert(deteksi).values(rawDetections.map((d: any) => ({
+          id_laporan: report.id_laporan,
+          kelas: d.class,
+          confidence_score: d.confidence,
+          bbox_x: d.bbox.x,
+          bbox_y: d.bbox.y,
+          bbox_width: d.bbox.width,
+          bbox_height: d.bbox.height,
+          image_index: d.image_index || 0
+        })));
+      }
 
-          // 2. AI Detection - run immediately after user submits
-          const apiKey = process.env.ULTRALYTICS_API_KEY;
-          if (apiKey && images.length > 0) {
-            console.log(`[Detection] Starting AI analysis for report ${report.id_laporan}`);
+      // 9. Send email (non-blocking)
+      sendFeedbackEmail(email, kodeUnik, report.id_laporan).catch(console.error);
 
-            let rawDetections: any[] = [];
-            const yoloUrl = "https://predict-69fefbdb869dd01551bd-dproatj77a-et.a.run.app/predict";
-
-            for (let i = 0; i < images.length; i++) {
-              const imgData = images[i];
-              if (!imgData || !imgData.includes(",")) continue;
-
-              const base64Data = imgData.split(",")[1];
-              const mimeType = imgData.split(";")[0].split(":")[1] || "image/jpeg";
-              const buffer = Buffer.from(base64Data, 'base64');
-              const blob = new Blob([buffer], { type: mimeType });
-
-              const formData = new FormData();
-              formData.append("file", blob, `image_${i}.jpg`);
-              formData.append("conf", "0.25");
-              formData.append("iou", "0.7");
-              formData.append("imgsz", "640");
-
-              try {
-                const yoloResponse = await fetch(yoloUrl, {
-                  method: "POST",
-                  headers: { "Authorization": `Bearer ${apiKey}` },
-                  body: formData,
-                });
-
-                if (!yoloResponse.ok) continue;
-
-                const yoloData = await yoloResponse.json() as any;
-                if (yoloData.images && yoloData.images.length > 0) {
-                  const results = yoloData.images[0].results || [];
-                  const imageDetections = results.map((det: any) => {
-                    const width = det.box.x2 - det.box.x1;
-                    const height = det.box.y2 - det.box.y1;
-                    return {
-                      class: det.name || "unknown",
-                      confidence: det.confidence,
-                      image_index: i,
-                      bbox: { x: det.box.x1, y: det.box.y1, width, height }
-                    };
-                  });
-                  rawDetections = [...rawDetections, ...imageDetections];
-                }
-              } catch (detErr) {
-                console.error(`[Detection] Error on image ${i}:`, detErr);
-              }
-            }
-
-            // Calculate RDS score
-            const weights: Record<string, number> = {
-              'pothole': 10, 'linear crack': 5, 'alligator crack': 7
-            };
-            const penalty = rawDetections.reduce((acc: number, det: any) => acc + (weights[det.class] || 0), 0);
-            const rdsScore = Math.max(0, 100 - penalty);
-
-            // Save detection results
-            if (rawDetections.length > 0) {
-              await db.delete(deteksi).where(eq(deteksi.id_laporan, report.id_laporan));
-              await db.insert(deteksi).values(rawDetections.map((d: any) => ({
-                id_laporan: report.id_laporan,
-                kelas: d.class,
-                confidence_score: d.confidence,
-                bbox_x: d.bbox.x,
-                bbox_y: d.bbox.y,
-                bbox_width: d.bbox.width,
-                bbox_height: d.bbox.height,
-                image_index: d.image_index || 0
-              })));
-            }
-
-            await db.update(laporan).set({ rds_score: rdsScore }).where(eq(laporan.id_laporan, report.id_laporan));
-            console.log(`[Detection] Completed for report ${report.id_laporan}: RDS=${rdsScore}, detections=${rawDetections.length}`);
-          }
-        } catch (bgError) {
-          console.error("Background task error:", bgError);
-        }
-      })();
-
+      // 10. Return success
+      console.log(`[Report] Created successfully: ${kodeUnik}`);
       res.json({
         success: true,
+        isRoadValid: true,
         report: {
           id: report.id_laporan,
           kodeUnik: report.kode_unik,
-          email: report.email,
-          createdAt: toISO(report.tanggal),
-          latitude: report.latitude,
-          longitude: report.longitude,
-          imageUrl: report.gambar,
-          deskripsi: report.deskripsi,
-          rdsScore: 0, // Will be updated by background detection
-          status: report.status,
-          address: report.alamat,
-          detecting: true, // Flag for frontend to show "AI analyzing..."
-          detections: []
+          rdsScore,
+          detections: rawDetections,
+          address: alamat
         }
       });
+
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Failed to create report" });
+      res.status(500).json({ error: "Terjadi kesalahan. Silakan coba lagi." });
     }
   });
 

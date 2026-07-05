@@ -12,6 +12,8 @@ export const laporan = sqliteTable('laporan', {
   deskripsi: text('deskripsi'),
   rds_score: real('rds_score').notNull(),
   status: text('status').default('pending').notNull(),
+  is_road_valid: integer('is_road_valid', { mode: 'boolean' }).default(true),
+  road_warning: text('road_warning'),
 });
 
 export const deteksi = sqliteTable('deteksi', {

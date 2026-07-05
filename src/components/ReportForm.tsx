@@ -48,9 +48,8 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
   const [deskripsi, setDeskripsi] = useState('');
   const [kodeUnik, setKodeUnik] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'analyzing' | 'success' | 'not-road' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [isDetecting, setIsDetecting] = useState(false);
   const [rdsScore, setRdsScore] = useState<number | null>(null);
   const [detections, setDetections] = useState<any[]>([]);
   const [resultImages, setResultImages] = useState<string[]>([]);
@@ -173,8 +172,11 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
     if (files.length === 0 || !email) return;
 
     setLoading(true);
-    setStatus('saving');
+    setStatus('analyzing');
     setErrorMsg(null);
+    setRdsScore(null);
+    setDetections([]);
+    setResultImages([]);
 
     try {
       const imagesPayload = await Promise.all(files.map(async (f) => {
@@ -208,13 +210,25 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
         body: JSON.stringify({ email, latitude, longitude, images: imagesPayload, deskripsi })
       });
 
-      if (!response.ok) throw new Error('API Error');
-
       const data = await response.json();
+
+      // Check if non-road detected
+      if (data.isRoadValid === false) {
+        setStatus('not-road');
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) throw new Error(data.error || 'API Error');
+
+      // Success - road valid
       setKodeUnik(data.report.kodeUnik);
-      setIsDetecting(data.report.detecting || false);
+      setRdsScore(data.report.rdsScore);
+      setDetections(data.report.detections || []);
+      setResultImages(imagesPayload);
       setStatus('success');
       if (onSuccess) onSuccess();
+
     } catch (error: any) {
       console.error(error);
       setErrorMsg(error.message || 'Terjadi kesalahan saat menyimpan laporan.');
@@ -223,61 +237,6 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
       setLoading(false);
     }
   };
-
-  // Poll for detection results after report is submitted
-  useEffect(() => {
-    if (!isDetecting || !kodeUnik) return;
-
-    let pollCount = 0;
-    const maxPolls = 30;
-
-    const pollInterval = setInterval(async () => {
-      pollCount++;
-      try {
-        const response = await fetch(`/api/reports/track/${kodeUnik}`);
-        if (response.ok) {
-          const reportsRes = await fetch('/api/reports');
-          if (reportsRes.ok) {
-            const reports = await reportsRes.json();
-            const report = reports.find((r: any) => r.kodeUnik === kodeUnik);
-
-            if (report) {
-              if (report.imageUrl) {
-                try {
-                  const parsed = JSON.parse(report.imageUrl);
-                  if (Array.isArray(parsed) && parsed.length > 0) {
-                    setResultImages(parsed);
-                  }
-                } catch (e) {}
-              } else if (previews.length > 0 && resultImages.length === 0) {
-                setResultImages(previews);
-              }
-
-              if (report.rdsScore > 0) {
-                setRdsScore(report.rdsScore);
-                if (report.detections) {
-                  setDetections(report.detections);
-                }
-                setIsDetecting(false);
-                clearInterval(pollInterval);
-              } else if (pollCount >= maxPolls) {
-                setIsDetecting(false);
-                clearInterval(pollInterval);
-              }
-            }
-          }
-        }
-      } catch (err) {
-        if (previews.length > 0 && resultImages.length === 0) {
-          setResultImages(previews);
-        }
-      }
-    }, 2000);
-
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [isDetecting, kodeUnik]);
 
   // Success Card Component
   const SuccessCard = () => (
@@ -366,22 +325,6 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                   {rdsScore < 50 ? 'Perlu penanganan segera' : rdsScore < 70 ? 'Perlu perhatian admin' : 'Kondisi baik'}
                 </p>
               </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* AI Analyzing indicator */}
-        {isDetecting && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl p-4" style={{ background: 'var(--color-brand-blue-50)', border: '1px solid var(--color-brand-blue-100)' }}
-          >
-            <div className="flex items-center justify-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-brand-blue)' }} />
-              <span className="font-semibold text-sm" style={{ color: 'var(--color-brand-blue)' }}>
-                AI Sedang Menganalisis...
-              </span>
             </div>
           </motion.div>
         )}
@@ -496,11 +439,6 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                         </div>
                       );
                     })}
-                    {isDetecting && (
-                      <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(241,245,249,0.8)' }}>
-                        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-brand-blue)' }} />
-                      </div>
-                    )}
                   </motion.div>
                 );
               })}
@@ -523,7 +461,6 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
               setPreviews([]);
               setKodeUnik(null);
               setDeskripsi('');
-              setIsDetecting(false);
               setRdsScore(null);
               setDetections([]);
               setResultImages([]);
@@ -547,9 +484,96 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
   return (
     <div className="max-w-[1080px] mx-auto py-4 md:py-8 px-0">
       <AnimatePresence mode="wait">
-        {status === 'success' ? (
+        {status === 'success' && (
           <SuccessCard />
-        ) : (
+        )}
+        {status === 'analyzing' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="card p-12 flex flex-col items-center text-center space-y-4"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-20 h-20 rounded-full flex items-center justify-center"
+              style={{ background: 'var(--color-brand-blue-50)' }}
+            >
+              <BrainCircuit className="w-10 h-10" style={{ color: 'var(--color-brand-blue)' }} />
+            </motion.div>
+            <h3 className="display-serif text-xl" style={{ color: 'var(--color-brand-blue)' }}>
+              AI Sedang Menganalisis...
+            </h3>
+            <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              Mendeteksi permukaan jalan dan kerusakan
+            </p>
+            <p className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+              Mohon tunggu sebentar
+            </p>
+          </motion.div>
+        )}
+        {status === 'not-road' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="card overflow-hidden"
+          >
+            <div className="p-8 text-center" style={{ background: 'linear-gradient(180deg, #fef2f2 0%, white 100%)' }}>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+                className="w-20 h-20 mx-auto mb-4"
+              >
+                <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+                  <circle cx="40" cy="40" r="38" fill="#ef4444"/>
+                  <path d="M28 28L52 52M52 28L28 52" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+                </svg>
+              </motion.div>
+              <span className="eyebrow block mb-2" style={{ color: '#dc2626' }}>
+                Bukan Jalan
+              </span>
+              <p className="display-serif text-2xl" style={{ color: '#1e3a8a' }}>
+                Foto Tidak Valid
+              </p>
+              <p className="text-sm mt-3" style={{ color: 'var(--color-on-surface-muted)' }}>
+                Foto tidak terdeteksi sebagai jalanan. Silakan foto permukaan jalan.
+              </p>
+            </div>
+            <div className="p-6">
+              <div className="rounded-2xl p-4 mb-4" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: '#991b1b' }}>
+                      Laporan Tidak Tersimpan
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: '#7f1d1d' }}>
+                      Silakan ambil foto baru yang menunjukkan permukaan jalan.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setStatus('idle');
+                  setFiles([]);
+                  setPreviews([]);
+                  setDeskripsi('');
+                  setRdsScore(null);
+                  setDetections([]);
+                  setResultImages([]);
+                }}
+                className="btn-primary w-full"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </motion.div>
+        )}
+        {status !== 'success' && status !== 'analyzing' && status !== 'not-road' && (
           <motion.div
             key="form"
             initial={{ opacity: 0, y: 16 }}
