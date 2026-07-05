@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+const ease = [0.22, 1, 0.36, 1] as const;
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Loader2, ShieldAlert, Mail, MapPin, ArrowRight, BrainCircuit, CheckCircle2 } from './icons';
+import { Upload, X, Loader2, ShieldAlert, Mail, MapPin, ArrowRight, BrainCircuit, CheckCircle2, Camera } from './icons';
 import PhotoGuidePanel from './PhotoGuidePanel';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, compressImage } from '../lib/utils';
@@ -55,6 +56,13 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
   const [resultImages, setResultImages] = useState<string[]>([]);
   const [imgDims, setImgDims] = useState<Record<number, {w: number, h: number}>>({});
 
+  // Camera capture state
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const currentStep = files.length > 0 ? (email ? 2 : 1) : 0;
 
   const isWithinKemang = (lat: number, lng: number) => {
@@ -79,6 +87,86 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
     accept: { 'image/*': [] },
     multiple: true
   } as any);
+
+  // Camera functions
+  const openCamera = async () => {
+    setCameraError(null);
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false,
+      });
+      // Small delay to ensure video element is rendered in DOM
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+      setCameraStream(stream);
+    } catch (err: any) {
+      setShowCamera(false);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setCameraError('Izin kamera ditolak. Cek pengaturan browser dan coba lagi.');
+      } else if (err.name === 'NotFoundError') {
+        setCameraError('Kamera tidak ditemukan di perangkat ini.');
+      } else {
+        setCameraError('Tidak dapat mengakses kamera.');
+      }
+    }
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setShowCamera(false);
+    setCameraError(null);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    // For mirror-corrected capture, draw flipped
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    // Un-flip for rear camera (already un-mirrored visually via CSS)
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      onDrop([file]);
+      closeCamera();
+    }, 'image/jpeg', 0.85);
+  };
+
+  // Ensure video plays when stream is re-attached (fallback for timing)
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [cameraStream]);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
+  // Attach camera stream to video element
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -547,6 +635,25 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                       </div>
                     )}
                   </div>
+                  {/* Camera button */}
+                  <button
+                    type="button"
+                    onClick={openCamera}
+                    disabled={files.length >= 3}
+                    className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-200"
+                    style={{
+                      background: files.length >= 3 ? 'var(--color-surface)' : 'var(--color-brand-blue-50)',
+                      border: `1.5px solid ${files.length >= 3 ? 'var(--color-border)' : 'var(--color-brand-blue-100)'}`,
+                      color: files.length >= 3 ? 'var(--color-on-surface-muted)' : 'var(--color-brand-blue)',
+                      cursor: files.length >= 3 ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <Camera className="w-4 h-4" />
+                    Ambil Foto dengan Kamera
+                  </button>
+                  {cameraError && (
+                    <p className="text-xs mt-2 text-center" style={{ color: '#ef4444' }}>{cameraError}</p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -655,6 +762,85 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                 <button onClick={() => { setStatus('idle'); setErrorMsg(null); }} className="btn-secondary">Coba Lagi</button>
               </motion.div>
             )}
+
+            {/* Camera Modal */}
+            <AnimatePresence>
+              {showCamera && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                  style={{ background: 'rgba(0,0,0,0.85)' }}
+                  onClick={closeCamera}
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.9, y: 20 }}
+                    transition={{ duration: 0.2, ease }}
+                    className="w-full max-w-md rounded-2xl overflow-hidden"
+                    style={{ background: '#0f172a' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <span className="font-semibold text-sm" style={{ color: '#fff' }}>Ambil Foto</span>
+                      <button
+                        type="button"
+                        onClick={closeCamera}
+                        className="p-1 rounded-lg transition-colors"
+                        style={{ color: '#94a3b8' }}
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Video preview */}
+                    <div className="relative aspect-[4/3] bg-black">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
+                      <canvas ref={canvasRef} className="hidden" />
+                      {/* Guide overlay */}
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <div className="w-4/5 h-3/5 rounded-2xl" style={{ border: '2px dashed rgba(251,191,36,0.6)' }} />
+                      </div>
+                      <div className="absolute bottom-3 left-0 right-0 text-center">
+                        <span className="text-[10px] px-3 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.5)', color: '#94a3b8' }}>
+                          Arahkan kerusakan jalan ke dalam frame
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="p-4 flex items-center justify-center gap-4">
+                      <button
+                        type="button"
+                        onClick={closeCamera}
+                        className="px-6 py-3 rounded-xl font-semibold text-sm"
+                        style={{ background: 'rgba(255,255,255,0.1)', color: '#94a3b8' }}
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={capturePhoto}
+                        className="w-16 h-16 rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border-[3px]"
+                        style={{ background: 'var(--color-brand-yellow)', color: 'var(--color-brand-blue)', borderColor: 'var(--color-brand-blue)' }}
+                      >
+                        <div className="w-8 h-8 rounded-full border-[3px]" style={{ borderColor: 'var(--color-brand-blue)' }} />
+                      </button>
+                      <div className="w-16" />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

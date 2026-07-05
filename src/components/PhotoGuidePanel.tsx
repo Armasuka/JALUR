@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 const ease = [0.22, 1, 0.36, 1] as const;
-import { ChevronRight, Camera, Ruler, Sun, Target, Scale } from './icons';
+import { ChevronRight, Camera } from './icons';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PhotoGuidePanelProps {
@@ -9,24 +9,24 @@ interface PhotoGuidePanelProps {
 
 const tips = [
   {
-    title: 'Jarak ideal',
-    desc: 'Ambil foto dari jarak ~1-2 meter. Terlalu dekat membuat kerusakan tidak terlihat utuh, terlalu jauh membuat detail tidak jelas.',
-    Icon: Ruler,
+    title: 'Jelas & tidak buram',
+    desc: 'Pastikan foto tajam dan fokus. Tekan ringan pada layar untuk mengunci fokus pada titik kerusakan.',
+    Icon: Camera,
   },
   {
-    title: 'Pencahayaan',
-    desc: 'Gunakan cahaya alami (siang hari). Hindari foto Gegen starkON atau backlit yang membuat kerusakan sulit terlihat.',
-    Icon: Sun,
+    title: 'Berwarna (full color)',
+    desc: 'Gunakan mode warna penuh, bukan hitam putih. Ini membantu AI mengenali jenis kerusakan secara akurat.',
+    Icon: Camera,
   },
   {
-    title: 'Fokus & ketajaman',
-    desc: 'Pastikan foto tidak blur. Tekan ringan pada layar untuk mengunci fokus pada titik kerusakan.',
-    Icon: Target,
+    title: 'Tampak keseluruhan kerusakan',
+    desc: 'Pastikan seluruh area kerusakan terlihat dalam frame. Jangan crop terlalu rapat.',
+    Icon: Camera,
   },
   {
-    title: 'Tunjukkan ukuran',
-    desc: 'Foto dari angle yang menunjukkan kedalaman atau lebar kerusakan. Jika memungkinkan, letakkan objek recognizable (botol, uang koin) sebagai skala.',
-    Icon: Scale,
+    title: 'Tidak tertutup gangguan',
+    desc: 'Pastikan foto tidak tertutup sidik jari, bayangan benda lain, atau objek lain yang mengganggu.',
+    Icon: Camera,
   },
 ];
 
