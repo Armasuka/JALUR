@@ -56,11 +56,11 @@ export default function Dashboard({ reports, role, onNavigate }: DashboardProps)
   const diteruskanCount = reports.filter(r => r.status === 'dilaporkan').length;
   const severeCount = analyzedReports.filter(r => r.rdsScore < 40).length;
 
-  const stats = [
-    { label: 'Total Laporan', value: reports.length, icon: ShieldAlert },
-    { label: 'Kerusakan Parah', value: severeCount, icon: AlertTriangle },
-    { label: 'Dilaporkan ke PU', value: diteruskanCount, icon: CheckCircle },
-    { label: 'Rata-rata RDS', value: analyzedReports.length > 0 ? avgRDS : '--', icon: TrendingDown },
+  const stats: { label: string; value: string | number; icon: React.ComponentType<any>; color: string }[] = [
+    { label: 'Total Laporan', value: reports.length, icon: ShieldAlert, color: 'var(--color-brand-blue)' },
+    { label: 'Kerusakan Parah', value: severeCount, icon: AlertTriangle, color: '#ef4444' },
+    { label: 'Dilaporkan ke PU', value: diteruskanCount, icon: CheckCircle, color: 'var(--color-success)' },
+    { label: 'Rata-rata RDS', value: analyzedReports.length > 0 ? avgRDS : '--', icon: TrendingDown, color: '#ef4444' },
   ];
 
   return (

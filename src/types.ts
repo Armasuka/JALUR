@@ -1,3 +1,8 @@
+export interface Stats {
+  total: number;
+  avgRds: number;
+}
+
 export interface Detection {
   class: 'pothole' | 'linear crack' | 'alligator crack';
   confidence: number;

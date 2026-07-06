@@ -68,7 +68,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(10);
     const fields = [
-      ['Status', report.status === 'pending' ? 'Menunggu' : report.status === 'reviewed' ? 'Ditinjau' : 'Selesai'],
+      ['Status', report.status === 'pending' ? 'Menunggu' : report.status === 'reviewed' ? 'Ditinjau' : 'Dilaporkan ke PU'],
       ['RDS Score', `${report.rdsScore} (${report.rdsScore < 40 ? 'Parah' : report.rdsScore < 70 ? 'Sedang' : 'Ringan'})`],
       ['Koordinat', `${report.latitude}, ${report.longitude}`],
       ['Alamat', report.address || '-'],
@@ -132,9 +132,6 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
       case 'pending': return 'badge-status-pending';
       case 'reviewed': return 'badge-status-reviewed';
       case 'dilaporkan': return 'badge-status-dilaporkan';
-      case 'dalam_perbaikan': return 'badge-status-dalam-perbaikan';
-      case 'perbaikan_selesai': return 'badge-status-selesai';
-      case 'ditolak': return 'badge-status-ditolak';
       default: return 'badge-status-pending';
     }
   };
@@ -144,9 +141,6 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
       case 'pending': return 'Menunggu';
       case 'reviewed': return 'Ditinjau';
       case 'dilaporkan': return 'Dilaporkan PU';
-      case 'dalam_perbaikan': return 'Perbaikan';
-      case 'perbaikan_selesai': return 'Selesai';
-      case 'ditolak': return 'Ditolak';
       default: return status;
     }
   };
@@ -205,7 +199,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     className="w-full px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-[var(--color-surface-cream)]"
                     style={{ color: statusFilter === s ? 'var(--color-brand-blue)' : 'var(--color-on-surface-muted)', fontWeight: statusFilter === s ? 700 : 500 }}
                   >
-                    {s === 'all' ? 'Semua Status' : s === 'pending' ? 'Pending' : s === 'reviewed' ? 'Reviewed' : 'Resolved'}
+                    {s === 'all' ? 'Semua Status' : s === 'pending' ? 'Pending' : s === 'reviewed' ? 'Reviewed' : 'Dilaporkan PU'}
                   </button>
                 ))}
               </div>
@@ -350,7 +344,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                     </select>
                   ) : (
                     <span className={getStatusBadgeClass(report.status)}>
-                      {report.status}
+                      {getStatusLabel(report.status)}
                     </span>
                   )}
                 </td>
@@ -446,9 +440,11 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                   </button>
                   <button
                     onClick={() => {
-                      onDelete(deleteTarget.id);
+                      const deletedId = deleteTarget.id;
+                      onDelete(deletedId);
                       setDeleteTarget(null);
-                      if (selectedReport?.id === deleteTarget.id) setSelectedReport(null);
+                      // Close detail modal if the deleted report was being viewed
+                      if (selectedReport?.id === deletedId) setSelectedReport(null);
                     }}
                     className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white transition-colors"
                     style={{ background: '#ef4444' }}
@@ -601,7 +597,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
                 <div className="flex gap-2 flex-wrap">
                   <span className={getStatusBadgeClass(selectedReport.status)}>
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor' }} />
-                    {selectedReport.status === 'pending' ? 'Menunggu' : selectedReport.status === 'reviewed' ? 'Ditinjau' : 'Selesai'}
+                    {selectedReport.status === 'pending' ? 'Menunggu' : selectedReport.status === 'reviewed' ? 'Ditinjau' : 'Dilaporkan ke PU'}
                   </span>
                   {selectedReport.rdsScore > 0 && (
                     <span className={`${selectedReport.rdsScore < 50 ? 'badge-accent' : ''}`}

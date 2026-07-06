@@ -104,7 +104,7 @@ describe('API Endpoints', () => {
       switch (status) {
         case 'pending': return 'Menunggu';
         case 'reviewed': return 'Sedang Ditinjau';
-        case 'diteruskan': return 'Selesai';
+        case 'dilaporkan': return 'Dilaporkan ke PU';
         default: return status;
       }
     }
@@ -112,7 +112,7 @@ describe('API Endpoints', () => {
     it('returns Indonesian labels for valid statuses', () => {
       expect(getStatusLabel('pending')).toBe('Menunggu');
       expect(getStatusLabel('reviewed')).toBe('Sedang Ditinjau');
-      expect(getStatusLabel('diteruskan')).toBe('Selesai');
+      expect(getStatusLabel('dilaporkan')).toBe('Dilaporkan ke PU');
     });
 
     it('returns status as-is for unknown values', () => {
@@ -126,7 +126,7 @@ describe('API Endpoints', () => {
       switch (status) {
         case 'pending': return '#f59e0b';
         case 'reviewed': return '#3b82f6';
-        case 'diteruskan': return '#22c55e';
+        case 'dilaporkan': return '#22c55e';
         default: return '#6b7280';
       }
     }
@@ -134,7 +134,7 @@ describe('API Endpoints', () => {
     it('returns correct colors for valid statuses', () => {
       expect(getStatusColor('pending')).toBe('#f59e0b');
       expect(getStatusColor('reviewed')).toBe('#3b82f6');
-      expect(getStatusColor('diteruskan')).toBe('#22c55e');
+      expect(getStatusColor('dilaporkan')).toBe('#22c55e');
     });
 
     it('returns gray for unknown status', () => {
@@ -263,7 +263,7 @@ describe('API Endpoints', () => {
     it('returns report by unique code', () => {
       const mockReports = [
         { kode_unik: 'LAP-ABCD', status: 'pending', rds_score: 80 },
-        { kode_unik: 'LAP-WXYZ', status: 'diteruskan', rds_score: 45 },
+        { kode_unik: 'LAP-WXYZ', status: 'dilaporkan', rds_score: 45 },
       ];
 
       const kode = 'LAP-ABCD';
@@ -286,12 +286,12 @@ describe('API Endpoints', () => {
   });
 
   describe('Status Update Validation', () => {
-    const validStatuses = ['pending', 'reviewed', 'diteruskan'];
+    const validStatuses = ['pending', 'reviewed', 'dilaporkan'];
 
     it('accepts valid status values', () => {
       expect(validStatuses.includes('pending')).toBe(true);
       expect(validStatuses.includes('reviewed')).toBe(true);
-      expect(validStatuses.includes('diteruskan')).toBe(true);
+      expect(validStatuses.includes('dilaporkan')).toBe(true);
     });
 
     it('rejects invalid status values', () => {
@@ -361,7 +361,7 @@ describe('API Response Formats', () => {
 
   describe('PUT /api/reports/:id/status', () => {
     it('accepts valid status values', () => {
-      const validStatuses = ['pending', 'reviewed', 'diteruskan'];
+      const validStatuses = ['pending', 'reviewed', 'dilaporkan'];
 
       validStatuses.forEach(status => {
         expect(validStatuses.includes(status)).toBe(true);

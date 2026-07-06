@@ -61,7 +61,7 @@ interface LaporanSeed {
   gambar: string;
   deskripsi: string;
   rds_score: number;
-  status: 'pending' | 'reviewed' | 'diteruskan';
+  status: 'pending' | 'reviewed' | 'dilaporkan';
   deteksi?: {
     kelas: string;
     confidence_score: number;
@@ -121,7 +121,7 @@ const sampleLaporan: LaporanSeed[] = [
     gambar: 'https://picsum.photos/seed/kemang04/800/600',
     deskripsi: 'Dinding penahan tanah (talud) retak dan mau ambruk. Perlu perhatian segera قبل terjadi kecelakaan.',
     rds_score: 89,
-    status: 'diteruskan',
+    status: 'dilaporkan',
     deteksi: [{ kelas: 'structural_crack', confidence_score: 0.92, bbox_x: 100, bbox_y: 50, bbox_width: 400, bbox_height: 500 }],
   },
   {
@@ -159,7 +159,7 @@ const sampleLaporan: LaporanSeed[] = [
     gambar: 'https://picsum.photos/seed/kemang07/800/600',
     deskripsi: 'Kerusakan trotoar berbahaya. Besi cor terbuka, immediately dangerous. Perlu police line segera.',
     rds_score: 91,
-    status: 'diteruskan',
+    status: 'dilaporkan',
     deteksi: [{ kelas: 'sidewalk_damage', confidence_score: 0.87, bbox_x: 200, bbox_y: 300, bbox_width: 400, bbox_height: 150 }],
   },
   {
@@ -195,7 +195,7 @@ const sampleLaporan: LaporanSeed[] = [
     gambar: 'https://picsum.photos/seed/kemang10/800/600',
     deskripsi: 'Bronjong penahan Kali Blitz sudah eroded. Kalau banjir besar bisa kolaps whole section.',
     rds_score: 85,
-    status: 'diteruskan',
+    status: 'dilaporkan',
     deteksi: [
       { kelas: 'erosion', confidence_score: 0.78, bbox_x: 0, bbox_y: 350, bbox_width: 800, bbox_height: 200 },
       { kelas: 'structural_crack', confidence_score: 0.65, bbox_x: 300, bbox_y: 250, bbox_width: 200, bbox_height: 300 },

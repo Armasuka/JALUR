@@ -54,7 +54,7 @@ export default function PriorityView({ reports, onStatusChange, onNavigateHistor
   }, [reports, filter]);
 
   const unanalyzed = useMemo(() => reports.filter(r => r.rdsScore === 0 && r.status !== 'dilaporkan'), [reports]);
-  const dilaporkan   = useMemo(() => reports.filter(r => r.status === 'dilaporkan'), [reports]);
+  const diteruskan   = useMemo(() => reports.filter(r => r.status === 'dilaporkan'), [reports]);
 
   // Summary stats
   const kritis = prioritized.filter(r => r.rdsScore < 25).length;
@@ -304,7 +304,7 @@ export default function PriorityView({ reports, onStatusChange, onNavigateHistor
       )}
 
       {/* Resolved summary */}
-      {dilaporkan.length > 0 && (
+      {diteruskan.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="tile p-5 flex items-center gap-4"
@@ -313,7 +313,7 @@ export default function PriorityView({ reports, onStatusChange, onNavigateHistor
           <div style={{ color: '#22c55e' }}><CheckCircle className="w-8 h-8 shrink-0" /></div>
           <div>
             <p className="font-semibold text-sm" style={{ color: '#15803d' }}>
-              {dilaporkan.length} laporan telah dilaporkan ke PU
+              {diteruskan.length} laporan telah dilaporkan ke PU
             </p>
             <p className="text-xs mt-0.5" style={{ color: '#16a34a' }}>
               Laporan berstatus <em>Dilaporkan ke PU</em> tidak ditampilkan dalam daftar prioritas.

@@ -59,10 +59,14 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
   const [showCamera, setShowCamera] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [geoWarning, setGeoWarning] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentStep = files.length > 0 ? (email ? 2 : 1) : 0;
+
+  // Track object URLs so they can be revoked to prevent memory leaks
+  const previewUrlsRef = useRef<string[]>([]);
 
   const isWithinKemang = (lat: number, lng: number) => {
     return lat >= -6.5400 && lat <= -6.4850 && lng >= 106.7200 && lng <= 106.7800;
@@ -72,7 +76,11 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
     if (acceptedFiles.length > 0) {
       setFiles(prev => {
         const combined = [...prev, ...acceptedFiles].slice(0, 3);
-        setPreviews(combined.map(f => URL.createObjectURL(f)));
+        const newUrls = combined.map(f => URL.createObjectURL(f));
+        // Revoke old URLs before replacing
+        previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+        previewUrlsRef.current = newUrls;
+        setPreviews(newUrls);
         return combined;
       });
       setKodeUnik(null);
@@ -151,6 +159,13 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
     }
   }, [cameraStream]);
 
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
@@ -197,6 +212,8 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
         latitude = pos.coords.latitude;
         longitude = pos.coords.longitude;
       } catch (geoError) {
+        // Set warning so user knows location may be inaccurate
+        setGeoWarning('Tidak dapat mendapatkan lokasi GPS. Laporan akan dikirim menggunakan lokasi default (Pusat Kecamatan Kemang). Mohon verifikasi lokasi di peta.');
         console.warn("Geolocation failed. Menggunakan lokasi default Kemang.", geoError);
       }
 
@@ -458,6 +475,8 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
             onClick={() => {
               setStatus('idle');
               setFiles([]);
+              previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+              previewUrlsRef.current = [];
               setPreviews([]);
               setKodeUnik(null);
               setDeskripsi('');
@@ -465,6 +484,7 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
               setDetections([]);
               setResultImages([]);
               setImgDims({});
+              setGeoWarning(null);
             }}
             className="btn-secondary flex-1"
           >
@@ -560,11 +580,14 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                 onClick={() => {
                   setStatus('idle');
                   setFiles([]);
+                  previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+                  previewUrlsRef.current = [];
                   setPreviews([]);
                   setDeskripsi('');
                   setRdsScore(null);
                   setDetections([]);
                   setResultImages([]);
+                  setGeoWarning(null);
                 }}
                 className="btn-primary w-full"
               >
@@ -632,6 +655,8 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                // Revoke the removed URL to free memory
+                                URL.revokeObjectURL(previews[i]);
                                 setFiles(prev => prev.filter((_, idx) => idx !== i));
                                 setPreviews(prev => prev.filter((_, idx) => idx !== i));
                               }}
@@ -712,13 +737,22 @@ export default function ReportForm({ onSuccess, onNavigateMap, onNavigateHistory
                 </div>
 
                 {/* GPS hint */}
-                <div className="flex gap-3 p-3.5 rounded-2xl" style={{ background: 'var(--color-brand-yellow-50)', border: '1px solid var(--color-brand-yellow-100)' }}>
-                  <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p className="text-xs font-medium leading-relaxed">
-                    <strong style={{ color: 'var(--color-brand-yellow-700)' }}>Lokasi otomatis.</strong>{' '}
-                    <span style={{ color: 'var(--color-on-surface-muted)' }}>Koordinat GPS diambil saat pengiriman.</span>
-                  </p>
-                </div>
+                {geoWarning ? (
+                  <div className="flex gap-3 p-3.5 rounded-2xl" style={{ background: '#fef2f2', border: '1px solid #fca5a5' }}>
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#dc2626' }} />
+                    <p className="text-xs font-medium leading-relaxed" style={{ color: '#991b1b' }}>
+                      <strong>⚠️ Lokasi tidak ditemukan.</strong> {geoWarning}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 p-3.5 rounded-2xl" style={{ background: 'var(--color-brand-yellow-50)', border: '1px solid var(--color-brand-yellow-100)' }}>
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                    <p className="text-xs font-medium leading-relaxed">
+                      <strong style={{ color: 'var(--color-brand-yellow-700)' }}>Lokasi otomatis.</strong>{' '}
+                      <span style={{ color: 'var(--color-on-surface-muted)' }}>Koordinat GPS diambil saat pengiriman.</span>
+                    </p>
+                  </div>
+                )}
 
                 {/* Submit */}
                 <button

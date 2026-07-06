@@ -123,16 +123,21 @@ export default function App() {
   };
 
   const handleDetect = async (id: number) => {
-    // Optimistic: show detecting state
-    setReports(prev => prev.map(r => r.id === id ? { ...r } : r));
+    // Optimistic: mark as detecting (rdsScore=0 indicates analyzing state)
+    setReports(prev => prev.map(r => r.id === id ? { ...r, rdsScore: 0 } : r));
     try {
       const response = await fetch(`/api/reports/${id}/detect`, {
         method: 'POST',
       });
       if (response.ok) {
         fetchReports(); // Refresh to get the new RDS and detections
+      } else {
+        // Revert on server error
+        fetchReports();
       }
     } catch (error) {
+      // Revert on network error
+      fetchReports();
       console.error("Detect error:", error);
     }
   };

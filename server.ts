@@ -187,7 +187,7 @@ async function sendPUReportEmail(report: {
           <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px;">Pelapor: <strong>${report.email}</strong></p>
           <p style="color: #6b7280; font-size: 13px; margin: 0;">Koordinat: ${report.latitude}, ${report.longitude}</p>
           <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
-            <p style="margin: 0; color: #92400e; font-size: 13px;">⚠️ Laporan ini telah ditinjau dan dianggapValid oleh admin JALUR. Mohon ditindaklanjuti.</p>
+            <p style="margin: 0; color: #92400e; font-size: 13px;">⚠️ Laporan ini telah ditinjau dan dianggap Valid oleh admin JALUR. Mohon ditindaklanjuti.</p>
           </div>
         </div>
         <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
@@ -196,7 +196,7 @@ async function sendPUReportEmail(report: {
 
     const info = await transporter.sendMail({
       from: process.env.FEEDBACK_FROM_EMAIL || '"JALUR" <noreply@jalur.local>',
-      to: 'pupr@gmail.com',
+      to: process.env.PU_EMAIL || 'pupr@gmail.com',
       subject: `[PU] Laporan Kerusakan Jalan [${report.kode_unik}] — RDS ${report.rds_score}`,
       html,
     });
@@ -711,7 +711,7 @@ async function generateKodeUnik(): Promise<string> {
         console.log(`[Status] Report ${report.kode_unik} → dilaporkan, sending PU email...`);
         const dets = await db.select().from(deteksi).where(eq(deteksi.id_laporan, Number(id)));
         sendPUReportEmail(report, dets)
-          .then(() => console.log(`[Email] PU email sent successfully to pupr@gmail.com for ${report.kode_unik}`))
+          .then(() => console.log(`[Email] PU email sent successfully to ${process.env.PU_EMAIL || 'pupr@gmail.com'} for ${report.kode_unik}`))
           .catch(err => console.error(`[Email] PU email FAILED for ${report.kode_unik}:`, err.message || err));
       }
 

@@ -14,7 +14,7 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@kemang.go.id' && password === 'admin123') {
+    if (email === import.meta.env.VITE_ADMIN_EMAIL && password === import.meta.env.VITE_ADMIN_PASSWORD) {
       onLogin();
     } else {
       setError(true);
@@ -112,8 +112,8 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
 
           <div className="text-xs p-3.5 rounded-xl" style={{ background: 'var(--color-surface)', border: '1px dashed var(--color-border)', color: 'var(--color-on-surface-muted)' }}>
             <strong style={{ color: 'var(--color-on-surface)' }}>Demo:</strong> Gunakan{' '}
-            <code className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-surface-cream)', color: 'var(--color-brand-blue)', fontFamily: 'var(--font-mono)' }}>admin@kemang.go.id</code> /{' '}
-            <code className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-surface-cream)', color: 'var(--color-brand-blue)', fontFamily: 'var(--font-mono)' }}>admin123</code>
+            <code className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-surface-cream)', color: 'var(--color-brand-blue)', fontFamily: 'var(--font-mono)' }}>{import.meta.env.VITE_ADMIN_EMAIL || 'admin@kemang.go.id'}</code> /{' '}
+            <code className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-surface-cream)', color: 'var(--color-brand-blue)', fontFamily: 'var(--font-mono)' }}>{import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'}</code>
           </div>
         </form>
       </div>
