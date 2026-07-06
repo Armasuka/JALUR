@@ -775,8 +775,19 @@ async function generateKodeUnik(): Promise<string> {
         middlewareMode: true,
         hmr: true,
         watch: {
-          // Prevent Vite's file watcher from triggering reloads on IDE tool state files
-          ignored: ['**/.refact/**', '**/.qodo/**', '**/.gemini/**', '**/.git/**', '**/node_modules/**', '**/dist/**'],
+          // Prevent Vite's file watcher from triggering reloads on IDE/AI tool state files
+          ignored: [
+            '**/.refact/**',
+            '**/.qodo/**',
+            '**/.gemini/**',
+            '**/.git/**',
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/.claude/**',
+            '**/.worktrees/**',
+            '**/.cursor/**',
+            '**/.windi/**',
+          ],
         },
       },
       appType: "spa",

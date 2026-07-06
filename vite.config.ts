@@ -20,8 +20,19 @@ export default defineConfig(({mode}) => {
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: {
-        // Ignore IDE/tool state files that change frequently and cause unwanted page reloads
-        ignored: ['**/.refact/**', '**/.qodo/**', '**/.gemini/**', '**/.git/**', '**/node_modules/**', '**/dist/**'],
+        // Ignore IDE/tool/AI state files that change frequently and cause unwanted page reloads
+        ignored: [
+          '**/.refact/**',
+          '**/.qodo/**',
+          '**/.gemini/**',
+          '**/.git/**',
+          '**/node_modules/**',
+          '**/dist/**',
+          '**/.claude/**',
+          '**/.worktrees/**',
+          '**/.cursor/**',
+          '**/.windi/**',
+        ],
       },
     },
     test: {
