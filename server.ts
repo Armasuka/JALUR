@@ -291,7 +291,7 @@ async function startServer() {
       const data = await db.select().from(laporan).orderBy(desc(laporan.tanggal));
 
       const reportsWithDetections = await Promise.all(data.map(async (report) => {
-        const dets = await db.select().from(deteksi).where(eq(deteksi.id_laporan, report.id_laporan));
+        const dets = await db!.select().from(deteksi).where(eq(deteksi.id_laporan, report.id_laporan));
         // map field names to match frontend types
         return {
           id: report.id_laporan,
