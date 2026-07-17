@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Report } from '../types';
-import kemangData from '../kemangPolygon.json';
+import kemangData from '../data/kemangPolygon.json';
 
 interface MapDisplayProps {
   reports: Report[];

@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { Report } from '../types';
 import { ChevronLeft, ArrowRight, MapPin, Filter } from './icons';
 import { motion, AnimatePresence } from 'motion/react';
-import kemangData from '../kemangPolygon.json';
+import kemangData from '../data/kemangPolygon.json';
 import HeatmapLayer from './HeatmapLayer';
 import StreetViewModal from './StreetViewModal';
 import { AnimatedNumber } from '../lib/useCountUp';
