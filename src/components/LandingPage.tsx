@@ -155,7 +155,7 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
           borderBottom: `1px solid ${scrolled ? 'var(--color-border)' : 'transparent'}`,
         }}
       >
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-10 xl:px-16 h-16 md:h-20 flex items-center justify-between">
           <AnimatedHeaderLogo scrolled={scrolled} onLogoClick={onLogoClick} />
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => scrollTo(sectionHow)} className="text-sm font-medium transition-colors hover:text-[var(--color-brand-blue)]" style={{ color: 'var(--color-on-surface-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Cara Lapor</button>
@@ -166,8 +166,8 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
       </header>
 
       {/* ── Editorial Hero ─────────────────────── */}
-      <section className="pt-24 md:pt-36 pb-8 px-4 md:px-8">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="pt-24 md:pt-36 pb-8 px-6 md:px-10 xl:px-16">
+        <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
           {/* Left: text */}
           <div>
             <motion.span
@@ -187,7 +187,7 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
             <motion.p
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={fadeUp} custom={2}
-              className="text-lg leading-relaxed max-w-[480px] mb-8" style={{ color: 'var(--color-on-surface-muted)' }}
+              className="text-lg leading-relaxed mb-8" style={{ color: 'var(--color-on-surface-muted)' }}
             >
               Sistem deteksi kerusakan jalan berbasis kecerdasan buatan. Setiap warga bisa melapor, setiap laporan dipetakan, setiap titik kerusakan dinilai secara matematis.
             </motion.p>
@@ -239,7 +239,7 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
       </section>
 
       {/* ── Bento Grid ─────────────────────────── */}
-      <section className="max-w-[1200px] mx-auto px-4 md:px-8 py-10 md:py-16 space-y-4">
+      <section className="max-w-[1440px] mx-auto px-6 md:px-10 xl:px-16 py-10 md:py-16 space-y-4">
 
         {/* Row 1: AI detection + Cara Lapor steps */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -465,7 +465,7 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
 
       {/* ── Footer ────────────────────────────── */}
       <footer style={{ borderTop: '1px solid var(--color-border)' }}>
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-10 xl:px-16 py-8 md:py-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <LajurLogo size={28} showTagline />
           <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
             © 2026 LAJUR · Proyek percontohan Kecamatan Kemang, Bogor
