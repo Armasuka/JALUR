@@ -1,22 +1,22 @@
 import React from 'react';
-import JalurMark from './JalurMark';
+import LajurMark from './LajurMark';
 import { IconProps } from './types';
 
-interface JalurLogoProps extends IconProps {
+interface LajurLogoProps extends IconProps {
   showTagline?: boolean;
   variant?: 'horizontal' | 'stacked';
   /** Use 'light' when placed on a dark/blue background */
   colorScheme?: 'default' | 'light';
 }
 
-export default function JalurLogo({
+export default function LajurLogo({
   size = 28,
   showTagline = false,
   variant = 'horizontal',
   colorScheme = 'default',
   className = '',
   ...rest
-}: JalurLogoProps) {
+}: LajurLogoProps) {
   const numSize = typeof size === 'string' ? parseInt(size, 10) : size;
   const fontSize = numSize * 0.85;
   const taglineSize = numSize * 0.4;
@@ -27,7 +27,7 @@ export default function JalurLogo({
   if (variant === 'stacked') {
     return (
       <div className={`flex flex-col items-center gap-1 ${className}`} {...rest}>
-        <JalurMark size={numSize} variant={colorScheme === 'light' ? 'light' : 'default'} />
+        <LajurMark size={numSize} variant={colorScheme === 'light' ? 'light' : 'default'} />
         <span
           style={{
             fontFamily: "var(--font-display)",
@@ -39,7 +39,7 @@ export default function JalurLogo({
             lineHeight: 1,
           }}
         >
-          JALUR
+          LAJUR
         </span>
         {showTagline && (
           <span
@@ -52,7 +52,7 @@ export default function JalurLogo({
               lineHeight: 1.3,
             }}
           >
-            Jalan Lapor Untuk Rakyat
+            LAPOR JALAN UNTUK RAKYAT
           </span>
         )}
       </div>
@@ -61,7 +61,7 @@ export default function JalurLogo({
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`} {...rest}>
-      <JalurMark size={numSize} variant={colorScheme === 'light' ? 'light' : 'default'} />
+      <LajurMark size={numSize} variant={colorScheme === 'light' ? 'light' : 'default'} />
       <div className="flex flex-col">
         <span
           style={{
@@ -74,7 +74,7 @@ export default function JalurLogo({
             lineHeight: 1,
           }}
         >
-          JALUR
+          LAJUR
         </span>
         {showTagline && (
           <span
@@ -88,7 +88,7 @@ export default function JalurLogo({
               marginTop: '2px',
             }}
           >
-            Jalan Lapor Untuk Rakyat
+            LAPOR JALAN UNTUK RAKYAT
           </span>
         )}
       </div>

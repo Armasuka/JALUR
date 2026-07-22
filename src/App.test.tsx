@@ -36,8 +36,8 @@ describe('App', () => {
 
     render(<App />);
 
-    // Should show landing page with JALUR branding
-    expect(document.body.textContent).toContain('JALUR');
+    // Should show landing page with LAJUR branding
+    expect(document.body.textContent).toContain('LAJUR');
   });
 
   it('renders landing page with warga entry button', async () => {

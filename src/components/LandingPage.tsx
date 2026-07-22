@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { JalurLogo, JalurMark, ArrowRight, ShieldCheck, MapPin, BrainCircuit, Search, Loader2 } from './icons';
+import { LajurLogo, LajurMark, ArrowRight, ShieldCheck, MapPin, BrainCircuit, Search, Loader2 } from './icons';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
 import { LandingView } from '../App';
 import { AnimatedNumber } from '../lib/useCountUp';
@@ -72,14 +72,14 @@ const scaleIn = {
   })
 };
 
-/* ── Animated Logo: "J JALUR" → scroll → just "J" ───────── */
+/* ── Animated Logo: "J LAJUR" → scroll → just "J" ───────── */
 function AnimatedHeaderLogo({ scrolled, onLogoClick }: { scrolled: boolean; onLogoClick?: () => void }) {
   return (
     <button
       onClick={onLogoClick}
       className="flex items-center gap-2.5 overflow-hidden bg-none border-none cursor-pointer"
     >
-      <JalurMark size={28} />
+      <LajurMark size={28} />
       <div
         className="overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{
@@ -98,7 +98,7 @@ function AnimatedHeaderLogo({ scrolled, onLogoClick }: { scrolled: boolean; onLo
             lineHeight: 1,
           }}
         >
-          JALUR
+          LAJUR
         </span>
       </div>
     </button>
@@ -180,9 +180,9 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
             <motion.h1
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={fadeUp} custom={1}
-              className="display-serif mb-6" style={{ fontSize: 'clamp(48px, 6vw, 88px)', lineHeight: 1.02 }}
+              className="display-serif mb-6" style={{ fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 1.02 }}
             >
-              Jalan lapor<br /><em style={{ fontWeight: 300, fontStyle: 'italic', color: 'var(--color-brand-blue)' }}>untuk rakyat.</em>
+              LAPOR JALAN<br /><em style={{ fontWeight: 300, fontStyle: 'italic', color: 'var(--color-brand-blue)' }}>UNTUK RAKYAT.</em>
             </motion.h1>
             <motion.p
               initial="hidden" whileInView="visible" viewport={{ once: true }}
@@ -385,7 +385,7 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
             <p className="display-serif text-xl leading-snug" style={{ fontStyle: 'italic' }}>
               "Infrastruktur yang baik dimulai dari mata warganya."
             </p>
-            <span className="text-[10px] font-semibold uppercase tracking-widest mt-4" style={{ color: '#94a3b8' }}>Filosofi JALUR</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest mt-4" style={{ color: '#94a3b8' }}>Filosofi LAJUR</span>
           </motion.div>
         </div>
 
@@ -466,9 +466,9 @@ export default function LandingPage({ onEnter, onNavigate, onLogoClick }: Landin
       {/* ── Footer ────────────────────────────── */}
       <footer style={{ borderTop: '1px solid var(--color-border)' }}>
         <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-          <JalurLogo size={28} showTagline />
+          <LajurLogo size={28} showTagline />
           <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
-            © 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor
+            © 2026 LAJUR · Proyek percontohan Kecamatan Kemang, Bogor
           </span>
         </div>
       </footer>

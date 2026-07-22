@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, Send, History, BarChart3, LogOut, Map, X, ListOrdered } from './icons';
-import { JalurLogo } from './icons';
+import { LajurLogo } from './icons';
 import { cn } from '../lib/utils';
 import { Role } from '../App';
 import { motion, AnimatePresence } from 'motion/react';
@@ -66,7 +66,7 @@ export default function Sidebar({ currentView, onViewChange, role, onLogout, isO
         {/* Logo */}
         <div className="p-6 h-20 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <button onClick={onLogout} className="flex items-center gap-2 bg-none border-none cursor-pointer">
-            <JalurLogo size={28} />
+            <LajurLogo size={28} />
           </button>
           {/* Mobile close button */}
           <button

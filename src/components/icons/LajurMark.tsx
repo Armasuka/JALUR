@@ -1,12 +1,12 @@
 import React from 'react';
 import { IconProps } from './types';
 
-interface JalurMarkProps extends IconProps {
+interface LajurMarkProps extends IconProps {
   /** Use 'light' when placed on a dark/blue background — strokes become white */
   variant?: 'default' | 'light';
 }
 
-export default function JalurMark({ size = 24, className = '', variant = 'default', 'aria-label': ariaLabel, ...rest }: JalurMarkProps) {
+export default function LajurMark({ size = 24, className = '', variant = 'default', 'aria-label': ariaLabel, ...rest }: LajurMarkProps) {
   const strokeColor = variant === 'light' ? '#ffffff' : 'var(--color-brand-blue)';
 
   return (
@@ -17,7 +17,7 @@ export default function JalurMark({ size = 24, className = '', variant = 'defaul
       viewBox="0 0 32 32"
       fill="none"
       className={className}
-      aria-label={ariaLabel || 'JALUR logo mark'}
+      aria-label={ariaLabel || 'LAJUR logo mark'}
       role="img"
       {...rest}
     >

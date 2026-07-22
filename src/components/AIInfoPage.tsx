@@ -124,7 +124,7 @@ export default function AIInfoPage({ onBack, onEnter }: AIInfoPageProps) {
             Computer Vision<br /><em style={{ fontWeight: 300, fontStyle: 'italic', color: 'var(--color-brand-blue)' }}>untuk Infrastruktur.</em>
           </motion.h1>
           <motion.p variants={fadeUp} custom={2} className="text-base leading-relaxed max-w-[600px]" style={{ color: 'var(--color-on-surface-muted)' }}>
-            JALUR menggunakan model YOLOv11 — state-of-the-art dalam object detection — untuk menganalisis kerusakan jalan secara otomatis dari foto yang dikirim warga.
+            LAJUR menggunakan model YOLOv11 — state-of-the-art dalam object detection — untuk menganalisis kerusakan jalan secara otomatis dari foto yang dikirim warga.
           </motion.p>
         </motion.div>
 
@@ -141,7 +141,7 @@ export default function AIInfoPage({ onBack, onEnter }: AIInfoPageProps) {
                 Computer Vision adalah cabang kecerdasan buatan yang memungkinkan komputer memahami dan menginterpretasikan gambar visual — sama seperti mata dan otak manusia, namun dengan kecepatan dan konsistensi yang jauh lebih tinggi.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-muted)' }}>
-                Dalam konteks JALUR, teknologi ini digunakan untuk mendeteksi jenis kerusakan jalan dari foto yang diambil warga menggunakan ponsel biasa — tidak perlu alat khusus atau keahlian teknis.
+                Dalam konteks LAJUR, teknologi ini digunakan untuk mendeteksi jenis kerusakan jalan dari foto yang diambil warga menggunakan ponsel biasa — tidak perlu alat khusus atau keahlian teknis.
               </p>
             </div>
             <div className="tile p-8" style={{ background: 'var(--color-brand-blue)', color: '#fff' }}>

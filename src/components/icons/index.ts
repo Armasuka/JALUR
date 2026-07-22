@@ -42,8 +42,8 @@ export { default as User } from './User';
 export { default as X } from './X';
 
 // Logo components
-export { default as JalurMark } from './JalurMark';
-export { default as JalurLogo } from './JalurLogo';
+export { default as LajurMark } from './LajurMark';
+export { default as LajurLogo } from './LajurLogo';
 
 // Types
 export type { IconProps } from './types';

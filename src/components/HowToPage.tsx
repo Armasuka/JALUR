@@ -83,7 +83,7 @@ const faqs = [
   },
   {
     q: 'Apakah bisa melapor dari luar Kecamatan Kemang?',
-    a: 'Saat ini JALUR difokuskan untuk wilayah Kecamatan Kemang, Bogor. Namun sistem tetap bisa menerima laporan dari lokasi lain.'
+    a: 'Saat ini LAJUR difokuskan untuk wilayah Kecamatan Kemang, Bogor. Namun sistem tetap bisa menerima laporan dari lokasi lain.'
   },
   {
     q: 'Apa yang terjadi setelah saya melapor?',
@@ -122,7 +122,7 @@ export default function HowToPage({ onBack, onEnter }: HowToPageProps) {
             Lapor dalam<br /><em style={{ fontWeight: 300, fontStyle: 'italic', color: 'var(--color-brand-blue)' }}>5 langkah mudah.</em>
           </motion.h1>
           <motion.p variants={fadeUp} custom={2} className="text-base leading-relaxed max-w-[550px] mx-auto" style={{ color: 'var(--color-on-surface-muted)' }}>
-            Tidak perlu keahlian khusus. Siapa pun bisa berkontribusi memperbaiki jalan di Kecamatan Kemang melalui JALUR.
+            Tidak perlu keahlian khusus. Siapa pun bisa berkontribusi memperbaiki jalan di Kecamatan Kemang melalui LAJUR.
           </motion.p>
         </motion.div>
 

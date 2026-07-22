@@ -51,7 +51,7 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
     doc.rect(0, 0, w, 40, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text('JALUR', 15, 20);
+    doc.text('LAJUR', 15, 20);
     doc.setFontSize(10);
     doc.text('Sistem Pelaporan Kerusakan Jalan', 15, 28);
     doc.setFontSize(12);
@@ -101,9 +101,9 @@ export default function HistoryList({ reports, isAdmin, onStatusChange, onDetect
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text('Digenerate otomatis oleh JALUR — Proyek percontohan Kecamatan Kemang, Bogor', w / 2, 285, { align: 'center' });
-    
-    doc.save(`JALUR_${report.kodeUnik || report.id}.pdf`);
+    doc.text('Digenerate otomatis oleh LAJUR — Proyek percontohan Kecamatan Kemang, Bogor', w / 2, 285, { align: 'center' });
+
+    doc.save(`LAJUR_${report.kodeUnik || report.id}.pdf`);
   };
 
   useEffect(() => {

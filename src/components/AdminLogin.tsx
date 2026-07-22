@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Mail, ArrowRight } from './icons';
-import { JalurLogo } from './icons';
+import { LajurLogo } from './icons';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -30,7 +30,7 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
         <div className="absolute -left-20 -bottom-20 w-[300px] h-[300px] rounded-full" style={{ background: 'rgba(255,255,255,0.03)' }} />
         
         <div className="relative z-10 flex items-center gap-3">
-          <JalurLogo size={36} colorScheme="light" />
+          <LajurLogo size={36} colorScheme="light" />
         </div>
 
         <div className="relative z-10">
@@ -44,7 +44,7 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
         </div>
 
         <span className="relative z-10 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          © 2026 JALUR · Jalan Lapor Untuk Rakyat
+          © 2026 LAJUR · LAPOR JALAN UNTUK RAKYAT
         </span>
       </div>
 

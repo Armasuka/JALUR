@@ -1,5 +1,5 @@
 {
-  "name": "JALUR — Jalan Lapor Untuk Rakyat",
+  "name": "LAJUR — LAPOR JALAN UNTUK RAKYAT",
   "description": "Sistem pelaporan dan monitoring kerusakan jalan berbasis web menggunakan deteksi YOLOv11 dan Road Damage Score (RDS) untuk Kecamatan Kemang, Kabupaten Bogor.",
   "requestFramePermissions": [
     "camera",

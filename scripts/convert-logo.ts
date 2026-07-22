@@ -20,7 +20,7 @@ async function convertSvgToPng(svgName, size, suffix = '') {
 }
 
 async function main() {
-  // JalurMark variants
+  // LajurMark variants
   await convertSvgToPng('jalur-mark', 24);
   await convertSvgToPng('jalur-mark', 32);
   await convertSvgToPng('jalur-mark', 48);

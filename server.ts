@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 
 function getBaseUrl(): string {
   if (process.env.BASE_URL) return process.env.BASE_URL;
-  if (process.env.NODE_ENV === 'production') return 'https://jalur.example.com';
+  if (process.env.NODE_ENV === 'production') return 'https://lajur.example.com';
   return `http://localhost:${parseInt(process.env.PORT || '3000')}`;
 }
 
@@ -100,7 +100,7 @@ async function sendFeedbackEmail(toEmail: string, kodeUnik: string, reportId: nu
     const html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
         <div style="background: #1e3a8a; padding: 24px; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">JALUR</h1>
+          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">LAJUR</h1>
           <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Platform Monitoring Kerusakan Jalan</p>
         </div>
         <div style="background: #faf9f7; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
@@ -113,13 +113,13 @@ async function sendFeedbackEmail(toEmail: string, kodeUnik: string, reportId: nu
           <p style="color: #6b7280; font-size: 13px; margin: 0 0 16px;">Simpan kode ini untuk memantau status laporan Anda.</p>
           <a href="${trackingUrl}" style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Pantau Laporan</a>
         </div>
-        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
+        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 LAJUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
       </div>
     `;
     const info = await transporter.sendMail({
-      from: process.env.FEEDBACK_FROM_EMAIL || '"JALUR" <noreply@jalur.local>',
+      from: process.env.FEEDBACK_FROM_EMAIL || '"LAJUR" <noreply@lajur.local>',
       to: toEmail,
-      subject: `Laporan Diterima [${kodeUnik}] — JALUR`,
+      subject: `Laporan Diterima [${kodeUnik}] — LAJUR`,
       html,
     });
 
@@ -164,7 +164,7 @@ async function sendPUReportEmail(report: {
     const html = `
       <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 24px;">
         <div style="background: #1e3a8a; padding: 24px; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">JALUR</h1>
+          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">LAJUR</h1>
           <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Laporan Kerusakan Jalan — Dilaporkan ke PU</p>
         </div>
         <div style="background: #faf9f7; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
@@ -187,15 +187,15 @@ async function sendPUReportEmail(report: {
           <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px;">Pelapor: <strong>${report.email}</strong></p>
           <p style="color: #6b7280; font-size: 13px; margin: 0;">Koordinat: ${report.latitude}, ${report.longitude}</p>
           <div style="margin-top: 16px; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
-            <p style="margin: 0; color: #92400e; font-size: 13px;">⚠️ Laporan ini telah ditinjau dan dianggap Valid oleh admin JALUR. Mohon ditindaklanjuti.</p>
+            <p style="margin: 0; color: #92400e; font-size: 13px;">⚠️ Laporan ini telah ditinjau dan dianggap Valid oleh admin LAJUR. Mohon ditindaklanjuti.</p>
           </div>
         </div>
-        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
+        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 LAJUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
       </div>
     `;
 
     const info = await transporter.sendMail({
-      from: process.env.FEEDBACK_FROM_EMAIL || '"JALUR" <noreply@jalur.local>',
+      from: process.env.FEEDBACK_FROM_EMAIL || '"LAJUR" <noreply@lajur.local>',
       to: process.env.PU_EMAIL || 'pupr@gmail.com',
       subject: `[PU] Laporan Kerusakan Jalan [${report.kode_unik}] — RDS ${report.rds_score}`,
       html,
@@ -221,7 +221,7 @@ async function sendStatusUpdateEmail(toEmail: string, kodeUnik: string, newStatu
     const html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
         <div style="background: #1e3a8a; padding: 24px; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">JALUR</h1>
+          <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">LAJUR</h1>
           <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Platform Monitoring Kerusakan Jalan</p>
         </div>
         <div style="background: #faf9f7; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
@@ -234,12 +234,12 @@ async function sendStatusUpdateEmail(toEmail: string, kodeUnik: string, newStatu
           </div>
           <a href="${trackingUrl}" style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Lihat Detail</a>
         </div>
-        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 JALUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
+        <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 16px 0 0;">© 2026 LAJUR · Proyek percontohan Kecamatan Kemang, Bogor</p>
       </div>
     `;
 
     const info = await transporter.sendMail({
-      from: process.env.FEEDBACK_FROM_EMAIL || '"JALUR" <noreply@jalur.local>',
+      from: process.env.FEEDBACK_FROM_EMAIL || '"LAJUR" <noreply@lajur.local>',
       to: toEmail,
       subject: `Update: Laporan [${kodeUnik}] — ${statusLabel}`,
       html,
@@ -261,7 +261,7 @@ async function getWilayahAddress(lat: number, lon: number): Promise<string> {
     // as an alternative since specific wilayah.id API requires auth/keys
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`, {
       headers: {
-        'User-Agent': 'JALUR/1.0'
+        'User-Agent': 'LAJUR/1.0'
       }
     });
     if (response.ok) {
