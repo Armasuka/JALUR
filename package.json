@@ -17,6 +17,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "drizzle-kit studio",
+    "convert:logo": "node --import tsx/esm scripts/convert-logo.ts",
     "deploy": "npm run build && npm run deploy:cloudrun",
     "deploy:cloudrun": "gcloud run deploy jalur-api --source . --region asia-southeast1 --platform managed"
   },
